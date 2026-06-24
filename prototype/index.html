@@ -1,0 +1,77 @@
+<!--
+📐 交互原型 - 非正式产品
+时薪桌面钟 · 原型入口索引
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时薪桌面钟 · 原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full p-8">
+        <div class="text-center mb-10">
+            <div class="text-5xl mb-4">⏳</div>
+            <h1 class="text-2xl font-bold mb-2">时薪桌面钟</h1>
+            <p class="text-slate-400 text-sm">交互原型 v1.0</p>
+        </div>
+
+        <div class="space-y-3">
+            <a href="setup.html" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-blue-500/50">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">⚙️</span>
+                    <div>
+                        <div class="font-semibold">设置向导</div>
+                        <div class="text-xs text-slate-400">3步输入月薪、工作天数、工作时间段</div>
+                    </div>
+                    <span class="ml-auto text-slate-500">→</span>
+                </div>
+            </a>
+
+            <a href="clock.html?state=before" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-slate-500/50">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">⏳</span>
+                    <div>
+                        <div class="font-semibold">时钟 · 工作前</div>
+                        <div class="text-xs text-slate-400">显示 0.00 + 倒计时等待</div>
+                    </div>
+                    <span class="ml-auto text-slate-500">→</span>
+                </div>
+            </a>
+
+            <a href="clock.html?state=working" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-emerald-500/50">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">💰</span>
+                    <div>
+                        <div class="font-semibold">时钟 · 工作中</div>
+                        <div class="text-xs text-slate-400">每秒累加跳动（沙漏感）</div>
+                    </div>
+                    <span class="ml-auto text-slate-500">→</span>
+                </div>
+            </a>
+
+            <a href="clock.html?state=after" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-amber-500/50">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🏁</span>
+                    <div>
+                        <div class="font-semibold">时钟 · 工作后</div>
+                        <div class="text-xs text-slate-400">定格今日日薪，成就感时刻</div>
+                    </div>
+                    <span class="ml-auto text-slate-500">→</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="mt-8 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+            <p class="text-xs text-slate-500 text-center">
+                💡 提示：时钟页面右上角可以切换三种状态演示
+            </p>
+        </div>
+    </div>
+</body>
+</html>
