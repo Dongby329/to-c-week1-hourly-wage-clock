@@ -155,6 +155,16 @@
                     每秒 <span id="previewPerSec" class="text-emerald-400 font-semibold">0.0237</span> 元
                 </p>
             </div>
+            <!-- Overtime rate -->
+            <div class="mt-5 p-3 bg-slate-800/30 border border-slate-700/40 rounded-xl">
+                <label class="block text-xs text-slate-400 text-center mb-2">🔥 加班费率（工作日加班默认 1.5 倍）</label>
+                <div class="flex gap-2 justify-center">
+                    <button onclick="setOTRate(1.0)" id="btnOT1" class="ot-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×1.0</button>
+                    <button onclick="setOTRate(1.5)" id="btnOT15" class="ot-btn px-3 py-1.5 bg-red-500/15 border border-red-500/30 rounded-lg text-sm text-red-300 transition active-sub">×1.5</button>
+                    <button onclick="setOTRate(2.0)" id="btnOT2" class="ot-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×2.0</button>
+                    <button onclick="setOTRate(3.0)" id="btnOT3" class="ot-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×3.0</button>
+                </div>
+            </div>
             <div class="flex gap-3 mt-8">
                 <button onclick="prevStep(3)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl transition">
                     ← 上一步
@@ -177,6 +187,7 @@
         let workDaysOfWeek = [true, true, true, true, true, false, false]; // default: 双休
         let scheduleType = 'dual'; // 'dual' | 'alternating' | 'single'
         let satWorkThisWeek = false; // for 大小周
+        let overtimeRate = 1.5;
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -261,6 +272,13 @@
             else btnR.classList.add('active-schedule');
         }
 
+        function setOTRate(rate) {
+            overtimeRate = rate;
+            document.querySelectorAll('.ot-btn').forEach(b => b.classList.remove('active-sub'));
+            const map = {1.0:'btnOT1', 1.5:'btnOT15', 2.0:'btnOT2', 3.0:'btnOT3'};
+            if (map[rate]) document.getElementById(map[rate]).classList.add('active-sub');
+        }
+
         // --- Step 3 preview ---
         function updatePreview() {
             const salary = parseFloat(document.getElementById('salary').value) || 0;
@@ -335,7 +353,8 @@
                 workHours: hours,
                 workDaysOfWeek: workDaysOfWeek,
                 scheduleType: scheduleType,
-                satWorkThisWeek: satWorkThisWeek
+                satWorkThisWeek: satWorkThisWeek,
+                overtimeRate: overtimeRate
             };
             sessionStorage.setItem('wageClockSettings', JSON.stringify(settings));
             window.location.href = 'clock.html?state=auto';
