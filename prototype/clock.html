@@ -272,7 +272,7 @@
                 perSecondRate: (15000 / 22) / 9 / 3600,
                 workDaysOfWeek: [true,true,true,true,true,false,false],
                 scheduleType: 'dual', satWorkThisWeek: false,
-                overtimeSettings: { mode:'rate', multiplier:1.5, customAmount:50, customUnit:'second' }
+                overtimeSettings: { mode:'rate', multiplier:1.5, customAmount:50, customUnit:'hour' }
             };
         })();
         // Ensure overtimeSettings exists (backward compat)
@@ -316,7 +316,8 @@
             if (ot.mode === 'persecond') return settings.perSecondRate;
             if (ot.mode === 'custom') {
                 if (ot.customUnit === 'once') return 0; // one-time fee, not per-second
-                return ot.customAmount || 0;
+                if (ot.customUnit === 'hour') return (ot.customAmount || 0) / 3600;
+                return ot.customAmount || 0; // 'second'
             }
             return settings.perSecondRate * (ot.multiplier || 1.5);
         }
@@ -325,6 +326,7 @@
             if (ot.mode === 'persecond') return '按秒薪 ¥'+settings.perSecondRate.toFixed(4)+'/秒';
             if (ot.mode === 'custom') {
                 if (ot.customUnit === 'once') return '单次 ¥'+(ot.customAmount||0).toFixed(2);
+                if (ot.customUnit === 'hour') return '时薪 ¥'+(ot.customAmount||0).toFixed(2)+' (≈'+((ot.customAmount||0)/3600).toFixed(4)+'/秒)';
                 return '自定义 ¥'+(ot.customAmount||0).toFixed(2)+'/秒';
             }
             return '×'+(ot.multiplier||1.5)+' (¥'+(settings.perSecondRate*(ot.multiplier||1.5)).toFixed(4)+'/秒)';

@@ -179,10 +179,10 @@
                         <span class="text-slate-400 text-xs">元</span>
                         <button onclick="toggleOTCustomUnit()" id="otCustomUnitBtn"
                             class="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">
-                            /秒
+                            /时
                         </button>
                     </div>
-                    <p class="text-xs text-slate-500 text-center" id="otCustomHint">加班每秒 +50.00 元</p>
+                    <p class="text-xs text-slate-500 text-center" id="otCustomHint">加班时薪 50.00 元（≈0.0139 元/秒）</p>
                 </div>
                 <!-- Formula placeholder (future) -->
                 <p class="text-xs text-slate-600 text-center mt-2">💡 后续可添加自定义计算公式（如：基本×1.5+餐补）</p>
@@ -213,7 +213,7 @@
             mode: 'rate',        // 'rate' | 'persecond' | 'custom'
             multiplier: 1.5,
             customAmount: 50,
-            customUnit: 'second' // 'second' | 'once'
+            customUnit: 'hour' // 'hour' | 'second' | 'once'
         };
 
         function showToast(msg) {
@@ -320,14 +320,20 @@
             if (mulMap[mult]) document.getElementById(mulMap[mult]).classList.add('active-sub');
         }
         function toggleOTCustomUnit() {
-            overtimeSettings.customUnit = overtimeSettings.customUnit === 'second' ? 'once' : 'second';
-            document.getElementById('otCustomUnitBtn').textContent = overtimeSettings.customUnit === 'second' ? '/秒' : '/次';
+            const units = ['hour', 'second', 'once'];
+            const labels = ['/时', '/秒', '/次'];
+            const idx = units.indexOf(overtimeSettings.customUnit);
+            const next = (idx + 1) % units.length;
+            overtimeSettings.customUnit = units[next];
+            document.getElementById('otCustomUnitBtn').textContent = labels[next];
             updateOTPreview();
         }
         function updateOTPreview() {
             const hint = document.getElementById('otCustomHint');
             const amt = parseFloat(document.getElementById('otCustomAmount').value) || 0;
-            if (overtimeSettings.customUnit === 'second') {
+            if (overtimeSettings.customUnit === 'hour') {
+                hint.textContent = '加班时薪 ' + amt.toFixed(2) + ' 元（≈' + (amt/3600).toFixed(4) + ' 元/秒）';
+            } else if (overtimeSettings.customUnit === 'second') {
                 hint.textContent = '加班每秒 +' + amt.toFixed(2) + ' 元';
             } else {
                 hint.textContent = '单次加班费用 ¥' + amt.toFixed(2);
