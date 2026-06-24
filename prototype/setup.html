@@ -19,6 +19,9 @@
         }
         input[type=range] { accent-color: #6366f1; }
         input[type=time]::-webkit-calendar-picker-indicator { filter: invert(1); }
+        .day-btn.work-day { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399; }
+        .day-btn.rest-day { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06); color: #475569; }
+        .schedule-btn.active-schedule { background: rgba(99,102,241,0.2) !important; border-color: rgba(99,102,241,0.5) !important; color: #a5b4fc !important; }
     </style>
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex items-center justify-center">
@@ -66,25 +69,54 @@
             </button>
         </div>
 
-        <!-- Step 2: Working Days -->
+        <!-- Step 2: Working Days + Rest Days -->
         <div id="step2" class="hidden">
             <div class="text-center mb-6">
                 <div class="text-4xl mb-3">📅</div>
-                <h2 class="text-lg font-semibold mb-1">每月工作多少天？</h2>
-                <p class="text-slate-400 text-sm">含法定节假日的话，通常 21-22 天</p>
+                <h2 class="text-lg font-semibold mb-1">工作制和休息日</h2>
+                <p class="text-slate-400 text-sm">选择你的工作制，自动匹配每月工作天数</p>
             </div>
-            <div class="relative mb-6">
+
+            <!-- Work schedule quick select -->
+            <div class="flex gap-2 justify-center mb-5">
+                <button id="btnDual" onclick="setSchedule('dual')" class="schedule-btn px-4 py-2 bg-indigo-500/20 border border-indigo-500/40 rounded-lg text-sm text-indigo-300 transition">双休</button>
+                <button id="btnAlternating" onclick="setSchedule('alternating')" class="schedule-btn px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">大小周</button>
+                <button id="btnSingle" onclick="setSchedule('single')" class="schedule-btn px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">单休</button>
+            </div>
+
+            <!-- Day-of-week toggles -->
+            <p class="text-xs text-slate-500 text-center mb-2">点击切换：<span class="text-emerald-400">工作日</span> / <span class="text-slate-600">休息日</span></p>
+            <div class="flex gap-1.5 justify-center mb-4" id="weekdayToggles">
+                <button onclick="toggleDay(0)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="0">一</button>
+                <button onclick="toggleDay(1)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="1">二</button>
+                <button onclick="toggleDay(2)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="2">三</button>
+                <button onclick="toggleDay(3)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="3">四</button>
+                <button onclick="toggleDay(4)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="4">五</button>
+                <button onclick="toggleDay(5)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="5">六</button>
+                <button onclick="toggleDay(6)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="6">日</button>
+            </div>
+
+            <!-- 大小周额外设置 -->
+            <div id="alternatingExtra" class="hidden mb-4 p-3 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center">
+                <p class="text-xs text-slate-400 mb-2">大小周：本周六是工作日吗？</p>
+                <div class="flex gap-2 justify-center">
+                    <button id="btnSatWork" onclick="setSatWork(true)" class="px-4 py-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded-lg text-sm text-indigo-300 transition">是，本周六上班</button>
+                    <button id="btnSatRest" onclick="setSatWork(false)" class="px-4 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">不，本周六休息</button>
+                </div>
+                <p class="text-xs text-slate-500 mt-2">大小周自动交替，只需确认本周状态</p>
+            </div>
+
+            <!-- Working days display (auto-calculated) -->
+            <div class="relative mb-3">
+                <label class="block text-xs text-slate-500 text-center mb-1">每月约工作</label>
                 <input type="number" id="workDays" value="22" min="1" max="31"
-                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-center text-3xl font-bold text-white focus:outline-none focus:border-indigo-500 transition"
-                    placeholder="输入天数">
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">天/月</span>
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-3xl font-bold text-white focus:outline-none focus:border-indigo-500 transition"
+                    placeholder="输入天数" readonly>
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg mt-2">天/月</span>
             </div>
-            <div class="flex gap-2 justify-center flex-wrap">
-                <button onclick="setDays(22)" class="px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded-lg text-sm text-indigo-300 transition">22天 (双休)</button>
-                <button onclick="setDays(24)" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">24天 (大小周)</button>
-                <button onclick="setDays(26)" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">26天 (单休)</button>
-            </div>
-            <div class="flex gap-3 mt-8">
+            <p class="text-xs text-slate-500 text-center mb-0" id="workDaysHint">双休制：5天/周 × 4.33周 ≈ 22天</p>
+
+            <div class="flex gap-3 mt-6">
                 <button onclick="prevStep(2)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl transition">
                     ← 上一步
                 </button>
@@ -141,12 +173,15 @@
 
     <script>
         let currentStep = 1;
+        // 0=Mon, 1=Tue, ..., 6=Sun. true = work day
+        let workDaysOfWeek = [true, true, true, true, true, false, false]; // default: 双休
+        let scheduleType = 'dual'; // 'dual' | 'alternating' | 'single'
+        let satWorkThisWeek = false; // for 大小周
 
         function showToast(msg) {
             const t = document.getElementById('toast');
             document.getElementById('toastMsg').textContent = msg;
-            t.classList.remove('hidden');
-            t.style.opacity = '1';
+            t.classList.remove('hidden'); t.style.opacity = '1';
             setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hidden'), 200); }, 2000);
         }
 
@@ -154,14 +189,79 @@
             const dots = [document.getElementById('dot1'), document.getElementById('dot2'), document.getElementById('dot3')];
             const lines = [document.getElementById('line1'), document.getElementById('line2')];
             dots.forEach((d, i) => {
-                if (i < step) { d.className = 'step-dot w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-400/50'; }
-                else if (i === step) { d.className = 'step-dot w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-400/50'; }
-                else { d.className = 'step-dot w-3 h-3 rounded-full bg-slate-700'; }
+                if (i < step) d.className = 'step-dot w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-400/50';
+                else d.className = 'step-dot w-3 h-3 rounded-full bg-slate-700';
             });
             lines.forEach((l, i) => { l.className = `w-8 h-0.5 transition-colors duration-400 ${i < step - 1 ? 'bg-indigo-500' : 'bg-slate-700'}`; });
             document.getElementById('stepLabel').textContent = `步骤 ${step}/3`;
         }
 
+        // --- Day toggle ---
+        function toggleDay(day) {
+            workDaysOfWeek[day] = !workDaysOfWeek[day];
+            updateDayButtons();
+            updateWorkDaysFromSelection();
+        }
+
+        function updateDayButtons() {
+            const btns = document.querySelectorAll('.day-btn');
+            btns.forEach((btn, i) => {
+                btn.classList.remove('work-day', 'rest-day');
+                btn.classList.add(workDaysOfWeek[i] ? 'work-day' : 'rest-day');
+            });
+        }
+
+        function updateWorkDaysFromSelection() {
+            const workCount = workDaysOfWeek.filter(Boolean).length;
+            const monthlyDays = Math.round(workCount * 4.33);
+            document.getElementById('workDays').value = monthlyDays;
+            const hint = `${workCount}天/周 × 4.33周 ≈ ${monthlyDays}天/月`;
+            document.getElementById('workDaysHint').textContent = hint;
+            updatePreview();
+        }
+
+        // --- Schedule quick select ---
+        function setSchedule(type) {
+            scheduleType = type;
+            // Update schedule buttons
+            document.querySelectorAll('.schedule-btn').forEach(b => b.classList.remove('active-schedule'));
+            const btnMap = { dual:'btnDual', alternating:'btnAlternating', single:'btnSingle' };
+            document.getElementById(btnMap[type]).classList.add('active-schedule');
+
+            const extra = document.getElementById('alternatingExtra');
+
+            if (type === 'dual') {
+                workDaysOfWeek = [true, true, true, true, true, false, false];
+                extra.classList.add('hidden');
+            } else if (type === 'single') {
+                workDaysOfWeek = [true, true, true, true, true, true, false];
+                extra.classList.add('hidden');
+            } else if (type === 'alternating') {
+                workDaysOfWeek = [true, true, true, true, true, satWorkThisWeek, false];
+                extra.classList.remove('hidden');
+                updateSatButtons();
+            }
+            updateDayButtons();
+            updateWorkDaysFromSelection();
+        }
+
+        function setSatWork(work) {
+            satWorkThisWeek = work;
+            workDaysOfWeek[5] = work;
+            updateDayButtons();
+            updateWorkDaysFromSelection();
+            updateSatButtons();
+        }
+
+        function updateSatButtons() {
+            const btnW = document.getElementById('btnSatWork');
+            const btnR = document.getElementById('btnSatRest');
+            btnW.classList.remove('active-schedule'); btnR.classList.remove('active-schedule');
+            if (satWorkThisWeek) btnW.classList.add('active-schedule');
+            else btnR.classList.add('active-schedule');
+        }
+
+        // --- Step 3 preview ---
         function updatePreview() {
             const salary = parseFloat(document.getElementById('salary').value) || 0;
             const days = parseInt(document.getElementById('workDays').value) || 1;
@@ -182,7 +282,6 @@
         }
 
         function setSalary(val) { document.getElementById('salary').value = val; updatePreview(); }
-        function setDays(val)  { document.getElementById('workDays').value = val; updatePreview(); }
 
         function nextStep(from) {
             if (from === 1) {
@@ -191,7 +290,8 @@
                 currentStep = 2;
             } else if (from === 2) {
                 const v = parseInt(document.getElementById('workDays').value);
-                if (!v || v < 1 || v > 31) { showToast('请输入1-31之间的工作天数'); return; }
+                if (!v || v < 1 || v > 31) { showToast('请输入有效的工作天数'); return; }
+                if (!workDaysOfWeek.some(Boolean)) { showToast('请至少选择一天为工作日'); return; }
                 currentStep = 3;
                 updatePreview();
             }
@@ -220,7 +320,24 @@
             const [sh, sm] = start.split(':').map(Number);
             const [eh, em] = end.split(':').map(Number);
             if (eh * 60 + em <= sh * 60 + sm) { showToast('下班时间必须晚于上班时间'); return; }
-            // Navigate to clock
+
+            // Save settings to sessionStorage for clock.html to read
+            const salary = parseFloat(document.getElementById('salary').value);
+            const days = parseInt(document.getElementById('workDays').value);
+            const hours = eh - sh + (em - sm) / 60;
+            const settings = {
+                monthlySalary: salary,
+                workingDays: days,
+                workStart: start,
+                workEnd: end,
+                dailySalary: salary / days,
+                perSecondRate: (salary / days) / hours / 3600,
+                workHours: hours,
+                workDaysOfWeek: workDaysOfWeek,
+                scheduleType: scheduleType,
+                satWorkThisWeek: satWorkThisWeek
+            };
+            sessionStorage.setItem('wageClockSettings', JSON.stringify(settings));
             window.location.href = 'clock.html?state=auto';
         }
 
@@ -228,8 +345,8 @@
         document.getElementById('startTime').addEventListener('change', updatePreview);
         document.getElementById('endTime').addEventListener('change', updatePreview);
         document.getElementById('salary').addEventListener('input', updatePreview);
-        document.getElementById('workDays').addEventListener('input', updatePreview);
         updateDots(1);
+        updateDayButtons();
     </script>
 </body>
 </html>
