@@ -1,109 +1,48 @@
-<!--
-📐 交互原型 - 非正式产品
-时薪桌面钟 · 原型入口索引
--->
+<!-- 时薪桌面钟 · 原型入口 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>时薪桌面钟 · 原型</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        :root { --bg:#09090b;--surface:#111114;--border:#222228;--text:#e4e4e7;--muted:#71717a;--accent:#f59e0b; }
+        * { margin:0;padding:0;box-sizing:border-box; }
+        body {
+            font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
+            background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;
+            -webkit-font-smoothing:antialiased;
+        }
+        body::before { content:'';position:fixed;inset:0;pointer-events:none;
+            background:radial-gradient(ellipse 50% 40% at 50% 40%,rgba(245,158,11,0.03) 0%,transparent 60%); }
+        .wrap { position:relative;z-index:1;width:380px;padding:2rem;text-align:center;animation:appear .5s ease; }
+        @keyframes appear { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        h1 { font-size:24px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px; }
+        .sub { font-size:13px;color:var(--muted);margin-bottom:32px; }
+        .links { display:flex;flex-direction:column;gap:6px; }
+        .links a {
+            display:flex;align-items:center;gap:10px;padding:12px 16px;
+            background:var(--surface);border:1px solid var(--border);border-radius:10px;
+            color:var(--text);text-decoration:none;font-size:13px;transition:all .2s;
+        }
+        .links a:hover { border-color:#52525b;background:#18181b; }
+        .links a .ico { font-size:18px;width:24px;text-align:center; }
+        .links a .arr { margin-left:auto;color:var(--muted); }
+        .note { margin-top:24px;font-size:10px;color:#27272a; }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full p-8">
-        <div class="text-center mb-10">
-            <div class="text-5xl mb-4">⏳</div>
-            <h1 class="text-2xl font-bold mb-2">时薪桌面钟</h1>
-            <p class="text-slate-400 text-sm">交互原型 v1.0</p>
-        </div>
-
-        <div class="space-y-3">
-            <a href="setup.html" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-blue-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">⚙️</span>
-                    <div>
-                        <div class="font-semibold">设置向导</div>
-                        <div class="text-xs text-slate-400">3步输入月薪、工作天数、工作时间段</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-
-            <a href="clock.html?state=auto" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-indigo-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🤖</span>
-                    <div>
-                        <div class="font-semibold">时钟 · 自动检测</div>
-                        <div class="text-xs text-slate-400">智能判断：休息日 / 工作前 / 工作中 / 工作后</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-
-            <a href="clock.html?state=rest" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-violet-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🏖</span>
-                    <div>
-                        <div class="font-semibold">时钟 · 休息日 🆕</div>
-                        <div class="text-xs text-slate-400">法定节假日 / 周末自动识别</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-
-            <a href="clock.html?state=before" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-slate-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">⏳</span>
-                    <div>
-                        <div class="font-semibold">时钟 · 工作前</div>
-                        <div class="text-xs text-slate-400">显示 0.00 + 倒计时等待</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-
-            <a href="clock.html?state=working" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-emerald-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">💰</span>
-                    <div>
-                        <div class="font-semibold">时钟 · 工作中</div>
-                        <div class="text-xs text-slate-400">每秒累加跳动（沙漏感）</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-
-            <a href="clock.html?state=after" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-amber-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🏁</span>
-                    <div>
-                        <div class="font-semibold">时钟 · 工作后</div>
-                        <div class="text-xs text-slate-400">定格今日日薪，成就感时刻</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-            <a href="calendar.html" class="block p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700 hover:border-cyan-500/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">📅</span>
-                    <div>
-                        <div class="font-semibold">收入日历 🆕</div>
-                        <div class="text-xs text-slate-400">每日收入一览 + 本月/历史总计</div>
-                    </div>
-                    <span class="ml-auto text-slate-500">→</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="mt-8 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-            <p class="text-xs text-slate-500 text-center">
-                💡 提示：时钟页面右上角可以切换多种状态演示（含加班模式）
-            </p>
-        </div>
+<body>
+<div class="wrap">
+    <h1>⏳ 时薪桌面钟</h1>
+    <p class="sub">交互原型 v3.0</p>
+    <div class="links">
+        <a href="hero.html"><span class="ico">✨</span>Hero · 正式入口<span class="arr">→</span></a>
+        <a href="login.html"><span class="ico">👤</span>登录 / 注册<span class="arr">→</span></a>
+        <a href="clock.html"><span class="ico">⏱</span>时钟（需先登录）<span class="arr">→</span></a>
+        <a href="setup.html"><span class="ico">⚙</span>设置向导<span class="arr">→</span></a>
+        <a href="calendar.html"><span class="ico">📅</span>收入日历<span class="arr">→</span></a>
     </div>
+    <p class="note">直接在文件管理器中双击 .html 文件即可在浏览器中打开</p>
+</div>
 </body>
 </html>

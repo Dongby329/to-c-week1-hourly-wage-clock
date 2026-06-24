@@ -204,6 +204,13 @@
     </div>
 
     <script>
+        // ============ AUTH CHECK ============
+        const CURRENT_USER = sessionStorage.getItem('wageClock_currentUser');
+        if (!CURRENT_USER) { window.location.href = 'login.html'; }
+        function userKey(k) { return 'wageClock_' + CURRENT_USER + '_' + k; }
+        function loadUserData(k, def) { try { const v = localStorage.getItem(userKey(k)); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
+        function saveUserData(k, val) { localStorage.setItem(userKey(k), JSON.stringify(val)); }
+
         let currentStep = 1;
         // 0=Mon, 1=Tue, ..., 6=Sun. true = work day
         let workDaysOfWeek = [true, true, true, true, true, false, false]; // default: 双休
@@ -215,6 +222,22 @@
             customAmount: 50,
             customUnit: 'hour' // 'hour' | 'second' | 'once'
         };
+
+        // Load existing settings if any
+        (function() {
+            const existing = loadUserData('settings', null);
+            if (existing) {
+                document.getElementById('salary').value = existing.monthlySalary || 15000;
+                document.getElementById('startTime').value = existing.workStart || '09:00';
+                document.getElementById('endTime').value = existing.workEnd || '18:00';
+                if (existing.workDaysOfWeek) workDaysOfWeek = existing.workDaysOfWeek;
+                if (existing.scheduleType) { scheduleType = existing.scheduleType; setSchedule(scheduleType); }
+                if (existing.satWorkThisWeek !== undefined) satWorkThisWeek = existing.satWorkThisWeek;
+                if (existing.overtimeSettings) { overtimeSettings = existing.overtimeSettings; setOTMode(overtimeSettings.mode); }
+                updateDayButtons();
+                updateWorkDaysFromSelection();
+            }
+        })();
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -426,7 +449,8 @@
                 overtimeSettings: overtimeSettings
             };
             sessionStorage.setItem('wageClockSettings', JSON.stringify(settings));
-            window.location.href = 'clock.html?state=auto';
+            saveUserData('settings', settings);
+            window.location.href = 'clock.html';
         }
 
         // Init

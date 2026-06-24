@@ -1,0 +1,271 @@
+<!-- 时薪桌面钟 · 登录/注册 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 · 时薪桌面钟</title>
+    <style>
+        :root {
+            --bg: #09090b; --surface: #111114; --border: #222228;
+            --text: #e4e4e7; --muted: #71717a; --accent: #f59e0b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none;
+            mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 70%);
+        }
+        .auth-container {
+            position: relative; z-index: 1;
+            width: 360px; padding: 2rem;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+        .auth-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 4px; }
+        .auth-subtitle { font-size: 13px; color: var(--muted); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+        .form-input {
+            width: 100%; padding: 12px 14px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text); font-size: 14px;
+            font-family: inherit; transition: all 0.2s; outline: none;
+        }
+        .form-input:focus { border-color: #52525b; background: #18181b; }
+        .form-input::placeholder { color: #3f3f46; }
+
+        .form-btn {
+            width: 100%; padding: 12px; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            font-family: inherit; border: none; transition: all 0.2s;
+            background: #fafafa; color: #09090b;
+            margin-top: 8px;
+        }
+        .form-btn:hover { background: #fff; }
+        .form-btn.secondary {
+            background: transparent; color: var(--muted);
+            border: 1px solid var(--border); margin-top: 8px;
+        }
+        .form-btn.secondary:hover { background: var(--surface); color: var(--text); }
+
+        .form-error {
+            font-size: 12px; color: #ef4444; text-align: center;
+            min-height: 20px; line-height: 20px; margin-top: 4px;
+        }
+
+        .user-list { margin-top: 24px; }
+        .user-list-label { font-size: 11px; color: #3f3f46; text-align: center; margin-bottom: 8px; }
+        .user-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 20px;
+            background: var(--surface); border: 1px solid var(--border);
+            font-size: 12px; cursor: pointer; transition: all 0.2s;
+            margin: 3px; color: var(--muted);
+        }
+        .user-chip:hover { border-color: #52525b; color: var(--text); }
+        .user-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+        .back-link { text-align: center; margin-top: 24px; }
+        .back-link a { font-size: 12px; color: #3f3f46; text-decoration: none; transition: color 0.2s; }
+        .back-link a:hover { color: var(--muted); }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <span class="auth-icon">⏳</span>
+            <h1 class="auth-title" id="authTitle">欢迎回来</h1>
+            <p class="auth-subtitle" id="authSubtitle">登录你的账户，继续计时</p>
+        </div>
+
+        <form id="authForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label class="form-label">用户名</label>
+                <input type="text" class="form-input" id="username" placeholder="输入用户名" required autocomplete="off">
+            </div>
+            <div class="form-group" id="passwordGroup">
+                <label class="form-label">密码</label>
+                <input type="password" class="form-input" id="password" placeholder="输入密码" autocomplete="off">
+            </div>
+            <div class="form-error" id="formError"></div>
+            <button type="submit" class="form-btn" id="submitBtn">登 录</button>
+        </form>
+
+        <button class="form-btn secondary" id="toggleModeBtn" onclick="toggleMode()">还没有账号？注册</button>
+
+        <div class="user-list" id="userList" style="display:none;">
+            <div class="user-list-label">已有账号，快速登录</div>
+            <div style="text-align:center;" id="userChips"></div>
+        </div>
+
+        <div class="back-link">
+            <a href="hero.html">← 返回首页</a>
+        </div>
+    </div>
+
+    <script>
+        const USERS_KEY = 'wageClock_users';
+        const CURRENT_USER_KEY = 'wageClock_currentUser';
+
+        let isRegisterMode = false;
+
+        function getUsers() {
+            try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; }
+            catch(e) { return {}; }
+        }
+        function saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+        function setCurrentUser(userId) { sessionStorage.setItem(CURRENT_USER_KEY, userId); }
+        function getCurrentUser() { return sessionStorage.getItem(CURRENT_USER_KEY); }
+
+        // Simple hash for prototype (not secure, just for demo)
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0;
+            }
+            return 'h_' + Math.abs(hash).toString(36);
+        }
+
+        function renderUserChips() {
+            const users = getUsers();
+            const ids = Object.keys(users);
+            const container = document.getElementById('userChips');
+            const list = document.getElementById('userList');
+
+            if (ids.length === 0) {
+                list.style.display = 'none';
+                return;
+            }
+            list.style.display = 'block';
+            container.innerHTML = ids.map(id =>
+                `<span class="user-chip" onclick="quickLogin('${id}')">
+                    <span class="dot"></span>${users[id].username}
+                </span>`
+            ).join('');
+        }
+
+        function quickLogin(userId) {
+            document.getElementById('username').value = userId;
+            document.getElementById('password').value = '';
+            document.getElementById('passwordGroup').style.display = 'none';
+            document.getElementById('formError').textContent = '';
+            setCurrentUser(userId);
+            goToClock();
+        }
+
+        function toggleMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? '创建账户' : '欢迎回来';
+            document.getElementById('authSubtitle').textContent = isRegisterMode ? '设置你的账户，数据独立存储' : '登录你的账户，继续计时';
+            document.getElementById('submitBtn').textContent = isRegisterMode ? '注 册' : '登 录';
+            document.getElementById('toggleModeBtn').textContent = isRegisterMode ? '已有账号？登录' : '还没有账号？注册';
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('formError').textContent = '';
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('formError');
+
+            if (!username || username.length < 2) {
+                errorEl.textContent = '用户名至少2个字符';
+                return;
+            }
+
+            const users = getUsers();
+
+            if (isRegisterMode) {
+                // Register
+                if (!password || password.length < 3) {
+                    errorEl.textContent = '密码至少3个字符';
+                    return;
+                }
+                if (users[username]) {
+                    errorEl.textContent = '该用户名已存在';
+                    return;
+                }
+                users[username] = {
+                    id: username,
+                    username: username,
+                    passwordHash: simpleHash(password),
+                    createdAt: new Date().toISOString().slice(0, 10)
+                };
+                saveUsers(users);
+                setCurrentUser(username);
+                goToClock();
+            } else {
+                // Login
+                if (users[username]) {
+                    // Existing user with password
+                    if (password && users[username].passwordHash === simpleHash(password)) {
+                        setCurrentUser(username);
+                        goToClock();
+                    } else if (!password && users[username].passwordHash) {
+                        errorEl.textContent = '请输入密码';
+                    } else {
+                        errorEl.textContent = '密码错误';
+                    }
+                } else {
+                    // New user - quick create
+                    if (!password) {
+                        // Quick login without password
+                        users[username] = {
+                            id: username,
+                            username: username,
+                            passwordHash: '',
+                            createdAt: new Date().toISOString().slice(0, 10)
+                        };
+                        saveUsers(users);
+                        setCurrentUser(username);
+                        goToClock();
+                    } else {
+                        users[username] = {
+                            id: username,
+                            username: username,
+                            passwordHash: simpleHash(password),
+                            createdAt: new Date().toISOString().slice(0, 10)
+                        };
+                        saveUsers(users);
+                        setCurrentUser(username);
+                        goToClock();
+                    }
+                }
+            }
+        }
+
+        function goToClock() {
+            window.location.href = 'clock.html';
+        }
+
+        // Init
+        renderUserChips();
+
+        // If already logged in, go to clock
+        const current = getCurrentUser();
+        if (current && getUsers()[current]) {
+            goToClock();
+        }
+    </script>
+</body>
+</html>
