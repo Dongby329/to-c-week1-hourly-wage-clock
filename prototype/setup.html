@@ -156,14 +156,36 @@
                 </p>
             </div>
             <!-- Overtime rate -->
-            <div class="mt-5 p-3 bg-slate-800/30 border border-slate-700/40 rounded-xl">
-                <label class="block text-xs text-slate-400 text-center mb-2">🔥 加班费率（工作日加班默认 1.5 倍）</label>
-                <div class="flex gap-2 justify-center">
-                    <button onclick="setOTRate(1.0)" id="btnOT1" class="ot-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×1.0</button>
-                    <button onclick="setOTRate(1.5)" id="btnOT15" class="ot-btn px-3 py-1.5 bg-red-500/15 border border-red-500/30 rounded-lg text-sm text-red-300 transition active-sub">×1.5</button>
-                    <button onclick="setOTRate(2.0)" id="btnOT2" class="ot-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×2.0</button>
-                    <button onclick="setOTRate(3.0)" id="btnOT3" class="ot-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×3.0</button>
+            <div class="mt-5 p-4 bg-slate-800/30 border border-slate-700/40 rounded-xl">
+                <label class="block text-xs text-slate-400 text-center mb-3">🔥 加班计费方式</label>
+                <!-- OT mode selector -->
+                <div class="flex gap-1 justify-center mb-3">
+                    <button onclick="setOTMode('rate')" id="otModeRate" class="ot-mode-btn px-3 py-1.5 bg-red-500/15 border border-red-500/30 rounded-lg text-xs text-red-300 transition active-sub">按倍率</button>
+                    <button onclick="setOTMode('persecond')" id="otModePerSec" class="ot-mode-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">按秒薪</button>
+                    <button onclick="setOTMode('custom')" id="otModeCustom" class="ot-mode-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">自定义</button>
                 </div>
+                <!-- Multiplier sub-options -->
+                <div id="otMultiplierRow" class="flex gap-2 justify-center mb-2">
+                    <button onclick="setOTMultiplier(1.0)" id="otMul1" class="ot-mul-btn px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×1.0</button>
+                    <button onclick="setOTMultiplier(1.5)" id="otMul15" class="ot-mul-btn px-3 py-1 bg-red-500/15 border border-red-500/30 rounded-lg text-sm text-red-300 transition active-sub">×1.5</button>
+                    <button onclick="setOTMultiplier(2.0)" id="otMul2" class="ot-mul-btn px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×2.0</button>
+                    <button onclick="setOTMultiplier(3.0)" id="otMul3" class="ot-mul-btn px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×3.0</button>
+                </div>
+                <!-- Custom amount sub-options -->
+                <div id="otCustomRow" class="hidden">
+                    <div class="flex items-center gap-2 justify-center mb-2">
+                        <input type="number" id="otCustomAmount" value="50" min="0" step="0.01"
+                            class="w-24 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-center text-white text-sm focus:outline-none focus:border-red-500 transition">
+                        <span class="text-slate-400 text-xs">元</span>
+                        <button onclick="toggleOTCustomUnit()" id="otCustomUnitBtn"
+                            class="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">
+                            /秒
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center" id="otCustomHint">加班每秒 +50.00 元</p>
+                </div>
+                <!-- Formula placeholder (future) -->
+                <p class="text-xs text-slate-600 text-center mt-2">💡 后续可添加自定义计算公式（如：基本×1.5+餐补）</p>
             </div>
             <div class="flex gap-3 mt-8">
                 <button onclick="prevStep(3)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl transition">
@@ -187,7 +209,12 @@
         let workDaysOfWeek = [true, true, true, true, true, false, false]; // default: 双休
         let scheduleType = 'dual'; // 'dual' | 'alternating' | 'single'
         let satWorkThisWeek = false; // for 大小周
-        let overtimeRate = 1.5;
+        let overtimeSettings = {
+            mode: 'rate',        // 'rate' | 'persecond' | 'custom'
+            multiplier: 1.5,
+            customAmount: 50,
+            customUnit: 'second' // 'second' | 'once'
+        };
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -272,12 +299,48 @@
             else btnR.classList.add('active-schedule');
         }
 
-        function setOTRate(rate) {
-            overtimeRate = rate;
-            document.querySelectorAll('.ot-btn').forEach(b => b.classList.remove('active-sub'));
-            const map = {1.0:'btnOT1', 1.5:'btnOT15', 2.0:'btnOT2', 3.0:'btnOT3'};
-            if (map[rate]) document.getElementById(map[rate]).classList.add('active-sub');
+        function setOTMode(mode) {
+            overtimeSettings.mode = mode;
+            document.querySelectorAll('.ot-mode-btn').forEach(b => b.classList.remove('active-sub'));
+            const modeMap = {rate:'otModeRate', persecond:'otModePerSec', custom:'otModeCustom'};
+            if (modeMap[mode]) document.getElementById(modeMap[mode]).classList.add('active-sub');
+
+            document.getElementById('otMultiplierRow').classList.toggle('hidden', mode !== 'rate');
+            document.getElementById('otCustomRow').classList.toggle('hidden', mode !== 'custom');
+
+            if (mode === 'persecond') {
+                overtimeSettings.multiplier = 1.0;
+            }
+            updateOTPreview();
         }
+        function setOTMultiplier(mult) {
+            overtimeSettings.multiplier = mult;
+            document.querySelectorAll('.ot-mul-btn').forEach(b => b.classList.remove('active-sub'));
+            const mulMap = {1.0:'otMul1', 1.5:'otMul15', 2.0:'otMul2', 3.0:'otMul3'};
+            if (mulMap[mult]) document.getElementById(mulMap[mult]).classList.add('active-sub');
+        }
+        function toggleOTCustomUnit() {
+            overtimeSettings.customUnit = overtimeSettings.customUnit === 'second' ? 'once' : 'second';
+            document.getElementById('otCustomUnitBtn').textContent = overtimeSettings.customUnit === 'second' ? '/秒' : '/次';
+            updateOTPreview();
+        }
+        function updateOTPreview() {
+            const hint = document.getElementById('otCustomHint');
+            const amt = parseFloat(document.getElementById('otCustomAmount').value) || 0;
+            if (overtimeSettings.customUnit === 'second') {
+                hint.textContent = '加班每秒 +' + amt.toFixed(2) + ' 元';
+            } else {
+                hint.textContent = '单次加班费用 ¥' + amt.toFixed(2);
+            }
+        }
+        // Bind custom amount input
+        document.addEventListener('DOMContentLoaded', function() {
+            const customAmt = document.getElementById('otCustomAmount');
+            if (customAmt) customAmt.addEventListener('input', function() {
+                overtimeSettings.customAmount = parseFloat(this.value) || 0;
+                updateOTPreview();
+            });
+        });
 
         // --- Step 3 preview ---
         function updatePreview() {
@@ -354,7 +417,7 @@
                 workDaysOfWeek: workDaysOfWeek,
                 scheduleType: scheduleType,
                 satWorkThisWeek: satWorkThisWeek,
-                overtimeRate: overtimeRate
+                overtimeSettings: overtimeSettings
             };
             sessionStorage.setItem('wageClockSettings', JSON.stringify(settings));
             window.location.href = 'clock.html?state=auto';

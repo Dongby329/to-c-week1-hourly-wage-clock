@@ -171,7 +171,10 @@
     <div class="clock-container state-before" id="clockContainer">
         <div class="top-bar">
             <span class="title">⏳ 时薪桌面钟</span>
-            <button class="settings-btn" onclick="goToSetup()" title="修改设置">⚙</button>
+            <div style="display:flex;gap:6px;">
+                <button class="settings-btn" onclick="goToCalendar()" title="收入日历" style="font-size:14px;">📅</button>
+                <button class="settings-btn" onclick="goToSetup()" title="修改设置">⚙</button>
+            </div>
         </div>
 
         <div style="text-align:center;">
@@ -269,11 +272,13 @@
                 perSecondRate: (15000 / 22) / 9 / 3600,
                 workDaysOfWeek: [true,true,true,true,true,false,false],
                 scheduleType: 'dual', satWorkThisWeek: false,
-                overtimeRate: 1.5
+                overtimeSettings: { mode:'rate', multiplier:1.5, customAmount:50, customUnit:'second' }
             };
         })();
-        // Ensure overtimeRate exists
-        if (!settings.overtimeRate) settings.overtimeRate = 1.5;
+        // Ensure overtimeSettings exists (backward compat)
+        if (!settings.overtimeSettings) {
+            settings.overtimeSettings = { mode:'rate', multiplier: settings.overtimeRate||1.5, customAmount:50, customUnit:'second' };
+        }
 
         // ========== HOLIDAY DATA ==========
         const holidayDB = {
@@ -306,6 +311,24 @@
             const d = new Date(); d.setHours(h,m,0,0); return d;
         }
         function getWorkSeconds() { return (getWorkEnd() - getWorkStart()) / 1000; }
+        function getOTRatePerSecond() {
+            const ot = settings.overtimeSettings || { mode:'rate', multiplier:1.5 };
+            if (ot.mode === 'persecond') return settings.perSecondRate;
+            if (ot.mode === 'custom') {
+                if (ot.customUnit === 'once') return 0; // one-time fee, not per-second
+                return ot.customAmount || 0;
+            }
+            return settings.perSecondRate * (ot.multiplier || 1.5);
+        }
+        function getOTRateLabel() {
+            const ot = settings.overtimeSettings || { mode:'rate', multiplier:1.5 };
+            if (ot.mode === 'persecond') return '按秒薪 ¥'+settings.perSecondRate.toFixed(4)+'/秒';
+            if (ot.mode === 'custom') {
+                if (ot.customUnit === 'once') return '单次 ¥'+(ot.customAmount||0).toFixed(2);
+                return '自定义 ¥'+(ot.customAmount||0).toFixed(2)+'/秒';
+            }
+            return '×'+(ot.multiplier||1.5)+' (¥'+(settings.perSecondRate*(ot.multiplier||1.5)).toFixed(4)+'/秒)';
+        }
 
         // ========== CALENDAR ==========
         function isTodayRestDay() {
@@ -440,7 +463,7 @@
             document.getElementById('overtimeActions').style.display='block';
             document.getElementById('btnStartOT').style.display='inline-block';
             document.getElementById('btnStopOT').style.display='none';
-            document.getElementById('overtimeRateBadge').textContent='🔥 加班费率 ×'+settings.overtimeRate;
+            document.getElementById('overtimeRateBadge').textContent='🔥 '+getOTRateLabel();
 
             updateSandglass('after');updateStats();
             showToast('🏁 今日日薪 ¥'+accumulatedAmount.toFixed(2)+' — 需要加班吗？');
@@ -448,7 +471,7 @@
 
         // ========== OVERTIME ==========
         function startOvertime(){
-            document.getElementById('statusText').textContent='🔥 加班中 · 每秒累加 ×'+settings.overtimeRate;
+            document.getElementById('statusText').textContent='🔥 加班中 · '+getOTRateLabel();
             document.getElementById('holidayIcon').style.display='none';
             document.getElementById('messageLine1').textContent='';
             document.getElementById('messageLine2').textContent='';
@@ -472,7 +495,7 @@
             document.getElementById('overtimeActions').style.display='block';
             document.getElementById('btnStartOT').style.display='none';
             document.getElementById('btnStopOT').style.display='inline-block';
-            document.getElementById('overtimeRateBadge').textContent='🔥 加班费率 ×'+settings.overtimeRate;
+            document.getElementById('overtimeRateBadge').textContent='🔥 '+getOTRateLabel();
 
             if(animationId)cancelAnimationFrame(animationId);
             animateOvertime();
@@ -491,7 +514,7 @@
             // Finalize overtime
             if(overtimeStartTime){
                 const otSec=(new Date()-overtimeStartTime)/1000;
-                overtimeAmount+=otSec*settings.perSecondRate*settings.overtimeRate;
+                overtimeAmount+=otSec*getOTRatePerSecond();
             }
             overtimeStartTime=null;
             accumulatedAmount=baseDayAmount+overtimeAmount;
@@ -556,7 +579,7 @@
             const tick=()=>{
                 const now=Date.now();
                 const delta=(now-lastTime)/1000;lastTime=now;
-                overtimeAmount+=delta*settings.perSecondRate*settings.overtimeRate;
+                overtimeAmount+=delta*getOTRatePerSecond();
                 accumulatedAmount=baseDayAmount+overtimeAmount;
                 updateWorkingDisplay();updateOvertimeBreakdown();
                 sandFrame++;if(sandFrame%30===0)updateSandglass('overtime');
@@ -608,6 +631,7 @@
             setTimeout(()=>{t.style.opacity='0'},3000);
         }
         function goToSetup(){window.location.href='setup.html';}
+        function goToCalendar(){window.location.href='calendar.html';}
 
         // ========== AUTO-DETECT ON LOAD ==========
         const urlParams=new URLSearchParams(window.location.search);
