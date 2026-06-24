@@ -1,6 +1,6 @@
 <!--
 📐 交互原型 - 非正式产品
-时薪桌面钟 · 时钟主界面（三态可切换演示）
+时薪桌面钟 · 时钟主界面（四态可切换演示 · v2.0 含日历检测）
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -10,175 +10,137 @@
     <title>时薪桌面钟 · 时钟</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg: #0b1120;
-            --card: #111827;
-            --border: #1e293b;
-        }
+        :root { --bg: #0b1120; --card: #111827; --border: #1e293b; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: var(--bg);
-            color: #e2e8f0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
+            background: var(--bg); color: #e2e8f0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; overflow-x: hidden;
+            user-select: none; -webkit-user-select: none;
         }
         .clock-container {
-            width: 380px;
-            min-height: 520px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 32px 28px;
-            position: relative;
+            width: 400px; min-height: 560px; background: var(--card);
+            border: 1px solid var(--border); border-radius: 24px; padding: 32px 28px;
             box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        /* State-specific glows */
-        .clock-container.state-before { box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(100,116,139,0.08); }
+        /* Glows */
+        .clock-container.state-rest    { box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(139,92,246,0.10); }
+        .clock-container.state-before  { box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(100,116,139,0.08); }
         .clock-container.state-working { box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(16,185,129,0.12); }
-        .clock-container.state-after { box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(245,158,11,0.12); }
+        .clock-container.state-after   { box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(245,158,11,0.12); }
 
-        /* Top bar */
-        .top-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px;
-        }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .top-bar .title { font-size: 14px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px; }
         .top-bar .settings-btn {
-            width: 36px; height: 36px; border-radius: 10px;
-            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 16px; transition: all 0.2s;
-            color: #94a3b8;
+            width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px; transition: all 0.2s; color: #94a3b8;
         }
         .top-bar .settings-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
 
         /* Status badge */
         .status-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 12px; border-radius: 20px;
-            font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
-            margin-bottom: 24px;
-            transition: all 0.5s;
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 24px; transition: all 0.5s;
         }
-        .state-before .status-badge { background: rgba(100,116,139,0.15); color: #94a3b8; }
+        .state-rest .status-badge    { background: rgba(139,92,246,0.12); color: #a78bfa; }
+        .state-before .status-badge  { background: rgba(100,116,139,0.15); color: #94a3b8; }
         .state-working .status-badge { background: rgba(16,185,129,0.15); color: #34d399; }
-        .state-after .status-badge { background: rgba(245,158,11,0.15); color: #fbbf24; }
-        .status-dot {
-            width: 6px; height: 6px; border-radius: 50%;
-            transition: all 0.5s;
-        }
-        .state-before .status-dot { background: #94a3b8; }
+        .state-after .status-badge   { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; transition: all 0.5s; }
+        .state-rest .status-dot    { background: #a78bfa; }
+        .state-before .status-dot  { background: #94a3b8; }
         .state-working .status-dot { background: #34d399; animation: pulse-dot 1.5s ease-in-out infinite; }
-        .state-after .status-dot { background: #fbbf24; }
+        .state-after .status-dot   { background: #fbbf24; }
         @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.6)} }
 
-        /* Countdown area */
-        .countdown-section {
-            text-align: center; margin-bottom: 12px; min-height: 36px;
-            transition: all 0.5s;
+        /* Message area (countdown or rest message) */
+        .message-section { text-align: center; margin-bottom: 12px; min-height: 36px; transition: all 0.5s; }
+        .message-line1 { font-size: 13px; color: #64748b; margin-bottom: 4px; }
+        .message-line2 {
+            font-size: 22px; font-weight: 300; color: #94a3b8; letter-spacing: 1px;
+            font-family: "SF Mono", "Fira Code", "Consolas", monospace;
         }
-        .state-before .countdown-label { color: #64748b; font-size: 13px; margin-bottom: 4px; }
-        .countdown-time {
-            font-size: 28px; font-weight: 300; color: #94a3b8;
-            font-variant-numeric: tabular-nums; font-family: "SF Mono", "Fira Code", "Consolas", monospace;
-            letter-spacing: 2px;
-        }
+        .state-rest .message-line1 { color: #7c3aed; }
+        .state-rest .message-line2 { color: #a78bfa; }
 
-        /* Main amount display */
+        /* Rest day holiday icon */
+        .holiday-icon { font-size: 48px; margin-bottom: 8px; display: none; }
+        .state-rest .holiday-icon { display: block; }
+
+        /* Main amount */
         .amount-section { text-align: center; margin-bottom: 8px; }
-        .currency-symbol {
-            font-size: 28px; font-weight: 300; vertical-align: top;
-            display: inline-block; margin-right: 2px; margin-top: 6px;
-            transition: color 0.5s;
-        }
-        .state-before .currency-symbol { color: #475569; }
+        .currency-symbol { font-size: 28px; font-weight: 300; vertical-align: top; display: inline-block; margin-right: 2px; margin-top: 6px; transition: color 0.5s; }
+        .state-rest .currency-symbol    { color: #7c3aed; }
+        .state-before .currency-symbol  { color: #475569; }
         .state-working .currency-symbol { color: #6ee7b7; }
-        .state-after .currency-symbol { color: #fcd34d; }
-
+        .state-after .currency-symbol   { color: #fcd34d; }
         .amount-number {
-            font-size: 64px; font-weight: 700; letter-spacing: -2px;
-            font-variant-numeric: tabular-nums;
-            font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Consolas", monospace;
-            transition: color 0.5s;
+            font-size: 64px; font-weight: 700; letter-spacing: -2px; font-variant-numeric: tabular-nums;
+            font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Consolas", monospace; transition: color 0.5s;
         }
-        .state-before .amount-number { color: #475569; }
+        .state-rest .amount-number    { color: #7c3aed; }
+        .state-before .amount-number  { color: #475569; }
         .state-working .amount-number { color: #6ee7b7; }
-        .state-after .amount-number { color: #fcd34d; }
-
-        .amount-label {
-            font-size: 13px; color: #64748b; margin-top: 2px;
-            transition: color 0.5s;
-        }
+        .state-after .amount-number   { color: #fcd34d; }
+        .amount-label { font-size: 13px; color: #64748b; margin-top: 2px; transition: color 0.5s; }
+        .state-rest .amount-label    { color: #7c3aed; }
         .state-working .amount-label { color: #059669; }
-        .state-after .amount-label { color: #b45309; }
+        .state-after .amount-label   { color: #b45309; }
 
         /* Progress bar */
         .progress-section { margin: 20px 0 24px; }
-        .progress-bar-outer {
-            height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
-        }
-        .progress-bar-inner {
-            height: 100%; border-radius: 2px; transition: width 1s linear, background 0.5s;
-        }
-        .state-before .progress-bar-inner { width: 0%; background: #475569; }
+        .progress-bar-outer { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+        .progress-bar-inner { height: 100%; border-radius: 2px; transition: width 1s linear, background 0.5s; }
+        .state-rest .progress-bar-inner    { width: 0%; background: #7c3aed; }
+        .state-before .progress-bar-inner  { width: 0%; background: #475569; }
         .state-working .progress-bar-inner { background: linear-gradient(90deg, #059669, #34d399); }
-        .state-after .progress-bar-inner { width: 100%; background: linear-gradient(90deg, #d97706, #fbbf24); }
+        .state-after .progress-bar-inner   { width: 100%; background: linear-gradient(90deg, #d97706, #fbbf24); }
 
-        /* Stats row */
-        .stats-row {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-            margin-bottom: 24px;
-        }
+        /* Stats */
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card {
             background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 12px; padding: 12px 8px; text-align: center;
-            transition: all 0.5s;
+            border-radius: 12px; padding: 12px 8px; text-align: center; transition: all 0.5s;
         }
+        .state-rest .stat-card    { border-color: rgba(139,92,246,0.12); }
         .state-working .stat-card { border-color: rgba(16,185,129,0.12); }
-        .state-after .stat-card { border-color: rgba(245,158,11,0.12); }
+        .state-after .stat-card   { border-color: rgba(245,158,11,0.12); }
         .stat-value { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
         .stat-label { font-size: 11px; color: #64748b; margin-top: 2px; }
 
-        /* Sand glass visual */
-        .sandglass-section {
-            display: flex; justify-content: center; margin-bottom: 16px;
-        }
-        .sandglass {
-            width: 40px; height: 60px; position: relative;
-            transition: all 0.5s;
-        }
+        /* Sandglass */
+        .sandglass-section { display: flex; justify-content: center; margin-bottom: 16px; }
+        .sandglass { width: 40px; height: 60px; transition: all 0.5s; }
         .sandglass svg { width: 100%; height: 100%; }
-        .sand-top, .sand-bottom { transition: all 0.5s; }
-        .state-working .sand-top { animation: sand-fall 2s ease-in-out infinite; }
-        @keyframes sand-fall {
-            0%,100% { opacity: 0.9; }
-            50% { opacity: 0.5; }
-        }
 
         /* Demo controls */
-        .demo-controls {
-            display: flex; gap: 6px; justify-content: center; margin-top: 8px;
-        }
+        .demo-controls { display: flex; gap: 6px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
         .demo-btn {
             padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.02); color: #64748b;
-            font-size: 11px; cursor: pointer; transition: all 0.2s;
-            font-family: inherit;
+            background: rgba(255,255,255,0.02); color: #64748b; font-size: 11px;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
         }
         .demo-btn:hover { background: rgba(255,255,255,0.06); color: #94a3b8; }
         .demo-btn.active { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.1); color: #a5b4fc; }
-        .demo-label {
-            text-align: center; font-size: 10px; color: #334155; margin-top: 10px;
-        }
+        .demo-label { text-align: center; font-size: 10px; color: #334155; margin-top: 10px; }
 
-        /* Toast */
+        /* Holiday subtype selector (only visible in rest state) */
+        .holiday-sub-select { display: none; justify-content: center; gap: 4px; margin-top: 6px; }
+        .state-rest .holiday-sub-select { display: flex; }
+        .sub-btn {
+            padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(139,92,246,0.2);
+            background: rgba(139,92,246,0.05); color: #8b8faf; font-size: 10px;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+        .sub-btn:hover { background: rgba(139,92,246,0.15); color: #c4b5fd; }
+        .sub-btn.active-sub { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); color: #c4b5fd; }
+
+        /* Next workday hint */
+        .next-workday { display: none; text-align: center; font-size: 11px; color: #64748b; margin-top: 6px; }
+        .state-rest .next-workday { display: block; }
+
         .toast {
             position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
             padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500;
@@ -188,10 +150,8 @@
 </head>
 <body>
 
-    <!-- Floating toast -->
     <div class="toast" id="toast"></div>
 
-    <!-- Clock Container -->
     <div class="clock-container state-before" id="clockContainer">
         <!-- Top bar -->
         <div class="top-bar">
@@ -207,10 +167,13 @@
             </div>
         </div>
 
-        <!-- Countdown (before work) -->
-        <div class="countdown-section" id="countdownSection">
-            <div class="countdown-label">距开始赚钱还有</div>
-            <div class="countdown-time" id="countdownTime">01:32:15</div>
+        <!-- Holiday icon (rest day only) -->
+        <div class="holiday-icon" id="holidayIcon">🎌</div>
+
+        <!-- Message area (countdown or rest info) -->
+        <div class="message-section" id="messageSection">
+            <div class="message-line1" id="messageLine1">距开始赚钱还有</div>
+            <div class="message-line2" id="messageLine2">01:32:15</div>
         </div>
 
         <!-- Main Amount -->
@@ -229,13 +192,12 @@
             </div>
         </div>
 
-        <!-- Sandglass visual -->
+        <!-- Sandglass -->
         <div class="sandglass-section">
             <div class="sandglass">
                 <svg viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 4h24l-4 18L32 40H8l4-18-4-18z" stroke="currentColor" stroke-width="1.5" fill="none"
-                        id="sandFrame" />
-                    <rect x="14" y="10" width="12" height="0" rx="1" id="sandTop" fill="currentColor" opacity="0.6" />
+                    <path d="M8 4h24l-4 18L32 40H8l4-18-4-18z" stroke="currentColor" stroke-width="1.5" fill="none" id="sandFrame" />
+                    <rect x="14" y="10" width="12" height="20" rx="1" id="sandTop" fill="currentColor" opacity="0.6" />
                     <rect x="14" y="42" width="12" height="0" rx="1" id="sandBottom" fill="currentColor" opacity="0.6" />
                 </svg>
             </div>
@@ -257,230 +219,279 @@
             </div>
         </div>
 
+        <!-- Next workday hint (rest day only) -->
+        <div class="next-workday" id="nextWorkdayHint">
+            📅 下一个工作日：<span id="nextWorkdayDate">明天（周四）</span>
+        </div>
+
         <!-- Demo: state switch -->
         <div class="demo-controls">
+            <button class="demo-btn" id="btnRest" onclick="switchState('rest')">🏖 休息日</button>
             <button class="demo-btn active" id="btnBefore" onclick="switchState('before')">⏳ 工作前</button>
             <button class="demo-btn" id="btnWorking" onclick="switchState('working')">💰 工作中</button>
             <button class="demo-btn" id="btnAfter" onclick="switchState('after')">🏁 工作后</button>
+        </div>
+        <!-- Holiday subtype selector -->
+        <div class="holiday-sub-select" id="holidaySubSelect">
+            <button class="sub-btn active-sub" onclick="setHolidayType('national')">🎌 法定假日</button>
+            <button class="sub-btn" onclick="setHolidayType('weekend')">☀️ 周末</button>
         </div>
         <div class="demo-label">▲ 原型演示：手动切换状态 ▲</div>
     </div>
 
     <script>
-        // --- Settings (simulated from setup or defaults) ---
+        // --- Settings ---
         const settings = {
-            monthlySalary: 15000,
-            workingDays: 22,
-            workStart: '09:00',
-            workEnd: '18:00',
-            perSecondRate: (15000 / 22 / 9 / 3600), // ~0.02104... wait, let me recalculate
-            dailySalary: 15000 / 22, // ~681.82
+            monthlySalary: 15000, workingDays: 22,
+            workStart: '09:00', workEnd: '18:00',
+            dailySalary: 15000 / 22,
+            perSecondRate: (15000 / 22) / 9 / 3600
         };
-        // Recalculate properly
-        settings.perSecondRate = settings.dailySalary / 9 / 3600; // 9 hours = 09:00 to 18:00
-        settings.dailySalary = settings.monthlySalary / settings.workingDays;
+
+        // --- Simulated Calendar Data ---
+        const holidayDB = {
+            '2026-01-01': '元旦',
+            '2026-02-17': '除夕', '2026-02-18': '春节', '2026-02-19': '春节',
+            '2026-02-20': '春节', '2026-02-21': '春节', '2026-02-22': '春节', '2026-02-23': '春节',
+            '2026-04-05': '清明节',
+            '2026-05-01': '劳动节', '2026-05-02': '劳动节', '2026-05-03': '劳动节',
+            '2026-05-31': '端午节',
+            '2026-09-25': '中秋节',
+            '2026-10-01': '国庆节', '2026-10-02': '国庆节', '2026-10-03': '国庆节',
+            '2026-10-04': '国庆节', '2026-10-05': '国庆节', '2026-10-06': '国庆节', '2026-10-07': '国庆节',
+        };
+        const makeupWorkdays = ['2026-02-14','2026-02-28','2026-04-26','2026-05-09','2026-09-20','2026-09-27','2026-10-10'];
 
         let currentState = 'before';
+        let holidayType = 'national'; // 'national' | 'weekend'
         let animationId = null;
-        let workStartTime = null;
         let accumulatedAmount = 0;
         let countdownSeconds = 0;
+
+        // --- Calendar Detection ---
+        function isTodayRestDay() {
+            const today = new Date();
+            const dateStr = today.toISOString().slice(0, 10);
+            const dayOfWeek = today.getDay(); // 0=Sun, 6=Sat
+
+            // Check makeup workday first (has priority)
+            if (makeupWorkdays.includes(dateStr)) return { rest: false, reason: '调休工作日' };
+
+            // Check holiday
+            if (holidayDB[dateStr]) return { rest: true, reason: holidayDB[dateStr], type: 'national' };
+
+            // Check weekend
+            if (dayOfWeek === 0 || dayOfWeek === 6) return { rest: true, reason: '周末', type: 'weekend' };
+
+            return { rest: false, reason: null };
+        }
+
+        function getNextWorkday() {
+            const d = new Date();
+            for (let i = 1; i <= 14; i++) {
+                d.setDate(d.getDate() + 1);
+                const ds = d.toISOString().slice(0, 10);
+                const dow = d.getDay();
+                if (makeupWorkdays.includes(ds)) return d;
+                if (holidayDB[ds]) continue;
+                if (dow === 0 || dow === 6) continue;
+                return d;
+            }
+            return new Date();
+        }
 
         // --- State Switching ---
         function switchState(state) {
             currentState = state;
-            // Update buttons
             document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn' + state.charAt(0).toUpperCase() + state.slice(1)).classList.add('active');
+            const btnMap = { rest:'btnRest', before:'btnBefore', working:'btnWorking', after:'btnAfter' };
+            if (btnMap[state]) document.getElementById(btnMap[state]).classList.add('active');
 
-            // Stop any running animation
             if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
 
-            // Update container class
             const container = document.getElementById('clockContainer');
-            container.classList.remove('state-before', 'state-working', 'state-after');
+            container.classList.remove('state-rest','state-before','state-working','state-after');
             container.classList.add('state-' + state);
 
-            // Update UI based on state
-            if (state === 'before') {
-                showBeforeWork();
-            } else if (state === 'working') {
-                showWorking();
-            } else if (state === 'after') {
-                showAfterWork();
-            }
+            if (state === 'rest') showRestDay();
+            else if (state === 'before') showBeforeWork();
+            else if (state === 'working') showWorking();
+            else if (state === 'after') showAfterWork();
         }
 
+        function setHolidayType(type) {
+            holidayType = type;
+            document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active-sub'));
+            if (type === 'national') document.querySelectorAll('.sub-btn')[0].classList.add('active-sub');
+            else document.querySelectorAll('.sub-btn')[1].classList.add('active-sub');
+            showRestDay(); // Refresh display
+        }
+
+        // --- Rest Day ---
+        function showRestDay() {
+            const isHoliday = holidayType === 'national';
+            const holidayName = isHoliday ? '国庆节' : '';
+
+            document.getElementById('statusText').textContent = isHoliday ? '🎌 今日休息 · 法定节假日' : '☀️ 今日休息';
+            document.getElementById('holidayIcon').textContent = isHoliday ? '🎌' : '☀️';
+            document.getElementById('messageLine1').textContent = isHoliday ? holidayName + ' · 法定节假日' : '好好休息~';
+            document.getElementById('messageLine2').textContent = isHoliday ? '今日不计算薪资' : '享受你的周末时光';
+            document.getElementById('amountNumber').textContent = '0.00';
+            document.getElementById('amountLabel').textContent = isHoliday ? '休息日 · 暂停计时' : '周末 · 暂停计时';
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Next workday
+            const next = getNextWorkday();
+            const dayNames = ['日','一','二','三','四','五','六'];
+            document.getElementById('nextWorkdayDate').textContent =
+                `${next.getMonth()+1}月${next.getDate()}日（周${dayNames[next.getDay()]}）`;
+
+            updateSandglass('rest');
+            updateStats();
+        }
+
+        // --- Before Work ---
         function showBeforeWork() {
             document.getElementById('statusText').textContent = '⏳ 等待工作时间';
-            document.getElementById('countdownSection').style.display = 'block';
-
-            // Simulate countdown: 1h 32m 15s from now
+            document.getElementById('holidayIcon').style.display = 'none';
+            document.getElementById('messageLine1').textContent = '距开始赚钱还有';
             const now = new Date();
-            const start = new Date(now);
-            start.setHours(9, 0, 0, 0); // 9:00 AM today
-            if (now > start) start.setDate(start.getDate() + 1); // tomorrow
-
+            const start = new Date(now); start.setHours(9,0,0,0);
+            if (now > start) start.setDate(start.getDate() + 1);
             countdownSeconds = Math.floor((start - now) / 1000);
-            if (countdownSeconds < 0) countdownSeconds = 5535; // fallback
-
+            if (countdownSeconds < 0) countdownSeconds = 5535;
             updateCountdownDisplay();
-            if (animationId) cancelAnimationFrame(animationId);
             animateCountdown();
-
             document.getElementById('amountNumber').textContent = '0.00';
             document.getElementById('amountLabel').textContent = '今日累计';
             document.getElementById('progressBar').style.width = '0%';
             updateSandglass('before');
             updateStats();
-            document.getElementById('currencySymbol').style.color = '';
-            document.getElementById('amountNumber').style.color = '';
         }
 
+        // --- Working ---
         function showWorking() {
             document.getElementById('statusText').textContent = '💰 工作中 · 每秒累加';
-            document.getElementById('countdownSection').style.display = 'none';
-
-            // Simulate: work started at 9:00, now is ~10:30
+            document.getElementById('holidayIcon').style.display = 'none';
+            document.getElementById('messageLine1').textContent = '';
+            document.getElementById('messageLine2').textContent = '';
             const now = new Date();
-            workStartTime = new Date(now);
-            workStartTime.setHours(9, 0, 0, 0);
-            const elapsedSec = Math.max(0, (now - workStartTime) / 1000);
-            accumulatedAmount = elapsedSec * settings.perSecondRate;
-
+            const start = new Date(now); start.setHours(9,0,0,0);
+            accumulatedAmount = Math.max(0, (now - start) / 1000) * settings.perSecondRate;
             updateWorkingDisplay();
-            if (animationId) cancelAnimationFrame(animationId);
             animateWorking();
-
             document.getElementById('amountLabel').textContent = '今日累计 · 跳动中';
             updateProgressDuringWork();
             updateSandglass('working');
             updateStats();
         }
 
+        // --- After Work ---
         function showAfterWork() {
             document.getElementById('statusText').textContent = '🏁 今日工作已结束';
-            document.getElementById('countdownSection').style.display = 'none';
-
-            // Full day amount
-            const workHours = 9; // 09:00 - 18:00
-            accumulatedAmount = settings.perSecondRate * workHours * 3600;
-
+            document.getElementById('holidayIcon').style.display = 'none';
+            document.getElementById('messageLine1').textContent = '';
+            document.getElementById('messageLine2').textContent = '';
+            accumulatedAmount = settings.perSecondRate * 9 * 3600;
             document.getElementById('amountNumber').textContent = accumulatedAmount.toFixed(2);
             document.getElementById('amountLabel').textContent = '今日日薪 · 已定格';
             document.getElementById('progressBar').style.width = '100%';
             updateSandglass('after');
             updateStats();
-            document.getElementById('currencySymbol').style.color = '';
-            document.getElementById('amountNumber').style.color = '';
         }
 
         // --- Animations ---
         function animateCountdown() {
             const tick = () => {
                 countdownSeconds--;
-                if (countdownSeconds <= 0) {
-                    switchState('working');
-                    showToast('⏰ 工作时间到！开始赚钱 💰');
-                    return;
-                }
+                if (countdownSeconds <= 0) { switchState('working'); showToast('⏰ 工作时间到！开始赚钱 💰'); return; }
                 updateCountdownDisplay();
                 animationId = requestAnimationFrame(() => setTimeout(tick, 1000));
             };
             animationId = requestAnimationFrame(() => setTimeout(tick, 1000));
         }
-
         function updateCountdownDisplay() {
-            const h = Math.floor(countdownSeconds / 3600);
-            const m = Math.floor((countdownSeconds % 3600) / 60);
-            const s = countdownSeconds % 60;
-            document.getElementById('countdownTime').textContent =
-                String(h).padStart(2, '0') + ':' +
-                String(m).padStart(2, '0') + ':' +
-                String(s).padStart(2, '0');
+            const h=Math.floor(countdownSeconds/3600), m=Math.floor((countdownSeconds%3600)/60), s=countdownSeconds%60;
+            document.getElementById('messageLine2').textContent =
+                String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
         }
-
         function animateWorking() {
-            let lastTime = Date.now();
-            let sandFrame = 0;
+            let lastTime=Date.now(), sandFrame=0;
             const tick = () => {
-                const now = Date.now();
-                const delta = (now - lastTime) / 1000;
-                lastTime = now;
-                accumulatedAmount += delta * settings.perSecondRate;
-                updateWorkingDisplay();
-                updateProgressDuringWork();
-                sandFrame++;
-                if (sandFrame % 30 === 0) updateSandglass('working'); // ~every 0.5s at 60fps
-                animationId = requestAnimationFrame(tick);
+                const now=Date.now(); accumulatedAmount += (now-lastTime)/1000 * settings.perSecondRate; lastTime=now;
+                updateWorkingDisplay(); updateProgressDuringWork();
+                sandFrame++; if(sandFrame%30===0) updateSandglass('working');
+                animationId=requestAnimationFrame(tick);
             };
-            animationId = requestAnimationFrame(tick);
+            animationId=requestAnimationFrame(tick);
         }
-
-        function updateWorkingDisplay() {
-            document.getElementById('amountNumber').textContent = accumulatedAmount.toFixed(2);
-        }
-
+        function updateWorkingDisplay() { document.getElementById('amountNumber').textContent = accumulatedAmount.toFixed(2); }
         function updateProgressDuringWork() {
-            const now = new Date();
-            const start = new Date(now); start.setHours(9, 0, 0, 0);
-            const end = new Date(now); end.setHours(18, 0, 0, 0);
-            const total = (end - start) / 1000;
-            const elapsed = (now - start) / 1000;
-            const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
-            document.getElementById('progressBar').style.width = pct + '%';
+            const now=new Date(), start=new Date(now); start.setHours(9,0,0,0); const end=new Date(now); end.setHours(18,0,0,0);
+            document.getElementById('progressBar').style.width = Math.min(100,Math.max(0,((now-start)/(end-start))*100))+'%';
         }
 
+        // --- Sandglass ---
         function updateSandglass(state) {
-            const frame = document.getElementById('sandFrame');
-            const top = document.getElementById('sandTop');
-            const bottom = document.getElementById('sandBottom');
-
-            if (state === 'before') {
-                frame.setAttribute('stroke', '#475569');
-                top.setAttribute('y', '10'); top.setAttribute('height', '20'); top.setAttribute('fill', '#475569');
-                bottom.setAttribute('y', '42'); bottom.setAttribute('height', '0'); bottom.setAttribute('fill', '#475569');
-            } else if (state === 'working') {
-                frame.setAttribute('stroke', '#34d399');
-                const pct = parseFloat(document.getElementById('progressBar').style.width) || 50;
-                const topH = Math.max(0, 20 * (1 - pct / 100));
-                const bottomH = Math.min(20, 20 * (pct / 100));
-                top.setAttribute('y', 10 + (20 - topH)); top.setAttribute('height', topH); top.setAttribute('fill', '#34d399');
-                bottom.setAttribute('y', 42); bottom.setAttribute('height', bottomH); bottom.setAttribute('fill', '#34d399');
-            } else {
-                frame.setAttribute('stroke', '#fbbf24');
-                top.setAttribute('y', '30'); top.setAttribute('height', '0'); top.setAttribute('fill', '#fbbf24');
-                bottom.setAttribute('y', '42'); bottom.setAttribute('height', '20'); bottom.setAttribute('fill', '#fbbf24');
+            const frame=document.getElementById('sandFrame'),top=document.getElementById('sandTop'),bottom=document.getElementById('sandBottom');
+            if(state==='rest'){
+                frame.setAttribute('stroke','#a78bfa'); top.setAttribute('y','10');top.setAttribute('height','20');top.setAttribute('fill','#a78bfa');
+                bottom.setAttribute('y','42');bottom.setAttribute('height','0');bottom.setAttribute('fill','#a78bfa');
+                document.getElementById('holidayIcon').style.display='block';
+            }else if(state==='before'){
+                frame.setAttribute('stroke','#475569'); top.setAttribute('y','10');top.setAttribute('height','20');top.setAttribute('fill','#475569');
+                bottom.setAttribute('y','42');bottom.setAttribute('height','0');bottom.setAttribute('fill','#475569');
+                document.getElementById('holidayIcon').style.display='none';
+            }else if(state==='working'){
+                frame.setAttribute('stroke','#34d399');
+                const pct=parseFloat(document.getElementById('progressBar').style.width)||50;
+                const topH=Math.max(0,20*(1-pct/100)), bottomH=Math.min(20,20*(pct/100));
+                top.setAttribute('y',10+(20-topH));top.setAttribute('height',topH);top.setAttribute('fill','#34d399');
+                bottom.setAttribute('y',42);bottom.setAttribute('height',bottomH);bottom.setAttribute('fill','#34d399');
+                document.getElementById('holidayIcon').style.display='none';
+            }else{
+                frame.setAttribute('stroke','#fbbf24'); top.setAttribute('y','30');top.setAttribute('height','0');top.setAttribute('fill','#fbbf24');
+                bottom.setAttribute('y','42');bottom.setAttribute('height','20');bottom.setAttribute('fill','#fbbf24');
+                document.getElementById('holidayIcon').style.display='none';
             }
         }
-
         function updateStats() {
-            document.getElementById('statPerSec').textContent = settings.perSecondRate.toFixed(4);
-            document.getElementById('statDaily').textContent = settings.dailySalary.toFixed(2);
-            document.getElementById('statMonthly').textContent = settings.monthlySalary.toLocaleString();
+            document.getElementById('statPerSec').textContent=settings.perSecondRate.toFixed(4);
+            document.getElementById('statDaily').textContent=settings.dailySalary.toFixed(2);
+            document.getElementById('statMonthly').textContent=settings.monthlySalary.toLocaleString();
         }
-
         function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.style.opacity = '1';
-            t.style.background = 'rgba(16,185,129,0.9)';
-            setTimeout(() => { t.style.opacity = '0'; }, 2500);
+            const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity='1'; t.style.background='rgba(16,185,129,0.9)';
+            setTimeout(()=>{t.style.opacity='0'},2500);
         }
+        function goToSetup(){ window.location.href='setup.html'; }
 
-        function goToSetup() {
-            window.location.href = 'setup.html';
-        }
-
-        // --- Init: check URL param ---
+        // --- Auto-detect on load ---
         const urlParams = new URLSearchParams(window.location.search);
-        const initState = urlParams.get('state') || 'before';
-        switchState(initState === 'auto' ? 'before' : initState);
-
-        // Also update sandglass during working animation
-        const origSwitch = switchState;
-        // Override to also update sand
-        const origAnimateWorking = animateWorking;
+        const initState = urlParams.get('state') || 'auto';
+        if (initState === 'auto') {
+            const check = isTodayRestDay();
+            if (check.rest) {
+                holidayType = check.type;
+                switchState('rest');
+                // Sync sub-button
+                document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active-sub'));
+                if (check.type === 'national') document.querySelectorAll('.sub-btn')[0].classList.add('active-sub');
+                else document.querySelectorAll('.sub-btn')[1].classList.add('active-sub');
+            } else {
+                // Now check time
+                const now = new Date();
+                const start = new Date(now); start.setHours(9,0,0,0);
+                const end = new Date(now); end.setHours(18,0,0,0);
+                if (now < start) switchState('before');
+                else if (now > end) switchState('after');
+                else switchState('working');
+            }
+        } else if (initState === 'rest') {
+            switchState('rest');
+        } else {
+            switchState(initState);
+        }
     </script>
 </body>
 </html>
