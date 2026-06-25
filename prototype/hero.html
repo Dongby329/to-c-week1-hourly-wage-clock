@@ -34,12 +34,12 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Waves */
-        .waves-bg {
+        /* DotGrid */
+        .dotgrid-bg {
             position: fixed; inset: 0; z-index: 0;
-            overflow: hidden; pointer-events: none;
+            overflow: hidden;
         }
-        .waves-bg canvas { display: block; width: 100%; height: 100%; }
+        .dotgrid-bg canvas { display: block; width: 100%; height: 100%; }
 
         /* Hero */
         .hero-container {
@@ -136,7 +136,7 @@
     </style>
 </head>
 <body>
-    <div class="waves-bg" id="wavesBg"><canvas id="wavesCanvas"></canvas></div>
+    <div class="dotgrid-bg" id="dotgridBg"><canvas id="dotgridCanvas"></canvas></div>
 
     <div class="hero-container">
         <div class="hero-title-wrap">
@@ -226,10 +226,10 @@ function shuffleTitle(text, containerId) {
     });
 }
 
-// ============ WAVES ============
-function initWaves() {
-    const container = document.getElementById('wavesBg');
-    const canvas = document.getElementById('wavesCanvas');
+// ============ DOTGRID ============
+function initDotGrid() {
+    const container = document.getElementById('dotgridBg');
+    const canvas = document.getElementById('dotgridCanvas');
     const ctx = canvas.getContext('2d');
 
     class Grad { constructor(x,y,z){this.x=x;this.y=y;this.z=z;} dot2(x,y){return this.x*x+this.y*y;} }
@@ -357,7 +357,133 @@ function initWaves() {
         document.getElementById('heroBtn').textContent = 'Enter';
         document.getElementById('heroBtn').href = 'clock.html';
     }
-    initWaves();
+    initDotGrid();
+    setTimeout(() => shuffleTitle(getGreeting(), 'heroTitle'), 400);
+})();
+</script>
+</body>
+</html>// ============ DOTGRID ============
+function initDotGrid() {
+    const container = document.getElementById('dotgridBg');
+    const canvas = document.getElementById('dotgridCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const dotSize = 3;
+    const gap = 28;
+    const proximity = 120;
+    const resilience = 0.08;
+    const friction = 0.88;
+    let dots = [];
+    let w = 0, h = 0;
+
+    const pointer = { x: -999, y: -999, px: 0, py: 0, vx: 0, vy: 0 };
+
+    function buildGrid() {
+        const r = container.getBoundingClientRect();
+        w = r.width; h = r.height;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const cell = dotSize + gap;
+        const cols = Math.floor(w / cell);
+        const rows = Math.floor(h / cell);
+        const gW = cell * cols;
+        const gH = cell * rows;
+        const ox = (w - gW) / 2 + dotSize / 2;
+        const oy = (h - gH) / 2 + dotSize / 2;
+
+        dots = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                dots.push({ cx: ox + c * cell, cy: oy + r * cell, x: 0, y: 0, vx: 0, vy: 0 });
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        const proxSq = proximity * proximity;
+        for (const d of dots) {
+            const ox = d.cx + d.x, oy = d.cy + d.y;
+            const dx = d.cx - pointer.x, dy = d.cy - pointer.y;
+            const dsq = dx * dx + dy * dy;
+            let a = 0.12;
+            if (dsq < proxSq) {
+                const t = 1 - Math.sqrt(dsq) / proximity;
+                a = 0.12 + t * 0.45;
+            }
+            ctx.beginPath();
+            ctx.arc(ox, oy, dotSize / 2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(2) + ')';
+            ctx.fill();
+        }
+    }
+
+    function update() {
+        const pvx = pointer.x - pointer.px;
+        const pvy = pointer.y - pointer.py;
+        pointer.vx += (pvx - pointer.vx) * 0.3;
+        pointer.vy += (pvy - pointer.vy) * 0.3;
+        pointer.px = pointer.x; pointer.py = pointer.y;
+        const speed = Math.hypot(pointer.vx, pointer.vy);
+
+        for (const d of dots) {
+            const dx = d.cx - pointer.x, dy = d.cy - pointer.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < proximity && speed > 5) {
+                const force = (1 - dist / proximity) * speed * 0.015;
+                d.vx += (dx / dist) * force;
+                d.vy += (dy / dist) * force;
+            }
+            d.vx += (0 - d.x) * resilience;
+            d.vy += (0 - d.y) * resilience;
+            d.vx *= friction; d.vy *= friction;
+            d.x += d.vx; d.y += d.vy;
+        }
+    }
+
+    function tick() { update(); draw(); requestAnimationFrame(tick); }
+
+    function onMouse(e) {
+        const r = container.getBoundingClientRect();
+        pointer.x = e.clientX - r.left;
+        pointer.y = e.clientY - r.top;
+    }
+
+    function onClick(e) {
+        const r = container.getBoundingClientRect();
+        const cx = e.clientX - r.left, cy = e.clientY - r.top;
+        for (const d of dots) {
+            const dist = Math.hypot(d.cx - cx, d.cy - cy);
+            if (dist < 200) {
+                const f = (1 - dist / 200) * 12;
+                d.vx += (d.cx - cx) / dist * f;
+                d.vy += (d.cy - cy) / dist * f;
+            }
+        }
+    }
+
+    buildGrid();
+    window.addEventListener('resize', buildGrid);
+    window.addEventListener('mousemove', onMouse, { passive: true });
+    window.addEventListener('click', onClick);
+    requestAnimationFrame(tick);
+}
+
+// ============ INIT ============
+(function init() {
+    const userId = getCurrentUser();
+    if (userId && getUsers()[userId]) {
+        document.getElementById('welcomeSection').style.display = 'block';
+        document.getElementById('welcomeUsername').textContent = userId;
+        document.getElementById('heroBtn').textContent = 'Enter';
+        document.getElementById('heroBtn').href = 'clock.html';
+    }
+    initDotGrid();
     setTimeout(() => shuffleTitle(getGreeting(), 'heroTitle'), 400);
 })();
 </script>
