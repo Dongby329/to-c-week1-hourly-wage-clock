@@ -122,16 +122,6 @@
         .stat .val { font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; }
         .stat .lbl { font-size:10px; color:var(--muted); margin-top:1px; }
 
-        /* Demo controls */
-        .demo { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
-        .demo button {
-            padding:5px 10px; border-radius:6px; font-size:10px; cursor:pointer; font-family:inherit;
-            border:1px solid rgba(255,255,255,0.06); background:transparent; color:#52525b; transition:all 0.2s;
-        }
-        .demo button:hover { border-color:rgba(255,255,255,0.12); color:#a1a1aa; }
-        .demo button.on { border-color:rgba(245,158,11,0.25); background:rgba(245,158,11,0.06); color:#f59e0b; }
-        .demo .hint { width:100%; text-align:center; font-size:9px; color:#27272a; margin-top:4px; }
-
         /* Toast */
         .toast {
             position:fixed; top:20px; left:50%; transform:translateX(-50%);
@@ -204,15 +194,6 @@
             <div class="stat"><div class="val" id="statMonthly">15,000</div><div class="lbl">月薪(元)</div></div>
         </div>
 
-        <!-- Demo -->
-        <div class="demo">
-            <button id="dRest" onclick="switchState('rest')">🏖 休息</button>
-            <button id="dBefore" class="on" onclick="switchState('before')">⏳ 工作前</button>
-            <button id="dWorking" onclick="switchState('working')">💰 工作中</button>
-            <button id="dAfter" onclick="switchState('after')">🏁 工作后</button>
-            <button id="dOvertime" onclick="switchState('overtime')">🔥 加班</button>
-            <div class="hint">原型演示 · 手动切换</div>
-        </div>
     </div>
 
 <script>
@@ -301,9 +282,6 @@ function isTodayRest() {
 // ============ STATE SWITCH ============
 function switchState(s) {
     currentState=s;
-    document.querySelectorAll('.demo button').forEach(b=>b.classList.remove('on'));
-    const dm={rest:'dRest',before:'dBefore',working:'dWorking',after:'dAfter',overtime:'dOvertime'};
-    if(dm[s]) document.getElementById(dm[s]).classList.add('on');
     if(animationId){cancelAnimationFrame(animationId);animationId=null;}
     const c=document.getElementById('clockContainer');
     c.className='clock state-'+s;
