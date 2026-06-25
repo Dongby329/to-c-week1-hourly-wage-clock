@@ -7,11 +7,6 @@
     <title>时薪桌面钟</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'PixelChinese';
-            src: url('https://cdn.jsdelivr.net/gh/TakWolf/fusion-pixel-font@main/fonts/fusion-pixel-12px-monospaced-zh_hans.woff2') format('woff2');
-            font-display: swap;
-        }
         :root {
             --bg: #08080c;
             --surface: #0f0f13;
@@ -70,7 +65,7 @@
             color: rgba(255,255,255,0.55);
         }
         .hero-title {
-            font-family: 'PixelChinese', 'Press Start 2P', monospace;
+            font-family: 'Press Start 2P', monospace;
             font-size: 26px; font-weight: 400;
             color: #ffffff;
             letter-spacing: 2px;
@@ -92,7 +87,7 @@
         }
         .shuffle-char-strip span {
             display: block; text-align: center; line-height: 1.25;
-            font-family: 'PixelChinese', 'Press Start 2P', monospace;
+            font-family: 'Press Start 2P', monospace;
             font-size: 26px; color: #ffffff;
         }
 
@@ -131,7 +126,7 @@
         }
         .welcome-user strong {
             color: #ffffff; font-weight: 600;
-            font-family: 'PixelChinese', 'Press Start 2P', monospace; font-size: 14px;
+            font-family: 'Press Start 2P', monospace; font-size: 14px;
         }
         .switch-btn {
             display: inline-flex; align-items: center; gap: 4px;
@@ -482,11 +477,23 @@ function initDotGrid() {
         document.getElementById('heroBtn').textContent = 'Enter';
         document.getElementById('heroBtn').href = 'clock.html';
     }
+    // Show text immediately
+    document.getElementById('heroTitle').textContent = getGreeting();
+    document.getElementById('heroTitleSub').textContent = 'fellow worker';
+
     initDotGrid();
-    setTimeout(() => {
+
+    // Shuffle animate after fonts ready
+    function animateTitles() {
         shuffleTitle(getGreeting(), 'heroTitle');
-        setTimeout(() => shuffleTitle('fellow worker', 'heroTitleSub', 18), 600);
-    }, 400);
+        setTimeout(() => shuffleTitle('fellow worker', 'heroTitleSub', 18), 500);
+    }
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => setTimeout(animateTitles, 200));
+    } else {
+        setTimeout(animateTitles, 600);
+    }
 })();
 </script>
 </body>
