@@ -75,6 +75,22 @@
             background: linear-gradient(135deg, #e4e4e7 0%, #a1a1aa 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
+            display: inline-block; white-space: nowrap;
+        }
+        /* Shuffle char wrappers */
+        .shuffle-char-wrap {
+            display: inline-block; overflow: hidden; vertical-align: bottom;
+            position: relative;
+        }
+        .shuffle-char-strip {
+            display: inline-flex; flex-direction: column;
+            will-change: transform;
+        }
+        .shuffle-char-strip span {
+            display: block; text-align: center; line-height: 1;
+            background: linear-gradient(135deg, #e4e4e7 0%, #a1a1aa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .hero-subtitle {
             font-size: 15px; color: var(--muted);
@@ -139,7 +155,7 @@
     <div class="hero-container">
         <div class="hero-icon">⏳</div>
 
-        <h1 class="hero-title">时薪桌面钟</h1>
+        <h1 class="hero-title" id="heroTitle"></h1>
         <p class="hero-subtitle" id="heroSubtitle">
             看见时间的重量。<br>每一秒，都值得被计算。
         </p>
@@ -182,6 +198,57 @@
         window.location.href = 'login.html';
     }
 
+    // ============ SHUFFLE TITLE ANIMATION ============
+    function shuffleTitle(text, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+        const chars = text.split('');
+        const wraps = [];
+
+        chars.forEach((finalChar, i) => {
+            const wrap = document.createElement('span');
+            wrap.className = 'shuffle-char-wrap';
+            const w = finalChar === ' ' ? 12 : (finalChar.match(/[一-鿿]/) ? 32 : 18);
+            wrap.style.width = w + 'px';
+            wrap.style.height = '42px';
+
+            const strip = document.createElement('span');
+            strip.className = 'shuffle-char-strip';
+
+            const steps = 8;
+            for (let s = 0; s < steps; s++) {
+                const span = document.createElement('span');
+                span.textContent = charset[Math.floor(Math.random() * charset.length)];
+                span.style.height = '42px';
+                strip.appendChild(span);
+            }
+            const final = document.createElement('span');
+            final.textContent = finalChar;
+            final.style.height = '42px';
+            strip.appendChild(final);
+
+            wrap.appendChild(strip);
+            container.appendChild(wrap);
+            wraps.push({ strip, steps, wrap });
+        });
+
+        // Animate with stagger
+        wraps.forEach((w, i) => {
+            const delay = i * 60 + Math.random() * 40;
+            const duration = 350 + Math.random() * 150;
+            const dist = -(w.steps * 42);
+
+            w.strip.style.transition = 'none';
+            w.strip.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                w.strip.style.transition = 'transform ' + duration + 'ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                w.strip.style.transform = 'translateY(' + dist + 'px)';
+            }, delay);
+        });
+    }
+
     (function init() {
         const userId = getCurrentUser();
         if (userId && getUsers()[userId]) {
@@ -194,6 +261,8 @@
             document.getElementById('heroBtn').href = 'clock.html';
             document.getElementById('heroFooter').innerHTML = '<span style="color:#3f3f46;">不是' + userId + '？</span> <a href="#" onclick="switchAccount()" style="color:#a1a1aa;">切换账号</a>';
         }
+        // Trigger shuffle title
+        setTimeout(() => shuffleTitle('时薪桌面钟', 'heroTitle'), 300);
     })();
 </script>
 </body>
