@@ -13,8 +13,15 @@ body {
   align-items: center; justify-content: center;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
+  perspective: 800px;
 }
-main { position:relative; z-index:1; text-align: center; padding: 2rem; }
+main {
+  position:relative; z-index:1; text-align: center; padding: 3rem 2rem;
+  background:#0f0f13;border:1px solid #1a1a20;border-radius:16px;
+  transform-style:preserve-3d;transition:transform 0.15s ease-out;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  width:500px;
+}
 h1 {
   font-family: 'Courier New', monospace;
   font-size: 28px; font-weight: 400; color: #fff;
@@ -154,6 +161,18 @@ if(u){ try{
   setTimeout(function(){build();requestAnimationFrame(tick);},100);
   window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
 })();
+
+// 3D Tilt
+var hcard=document.querySelector('main');
+hcard.addEventListener('mousemove',function(e){
+  var r=hcard.getBoundingClientRect();
+  var x=(e.clientX-r.left)/r.width-0.5;
+  var y=(e.clientY-r.top)/r.height-0.5;
+  hcard.style.transform='rotateY('+(x*12)+'deg) rotateX('+(-y*12)+'deg)';
+});
+hcard.addEventListener('mouseleave',function(){
+  hcard.style.transform='rotateY(0deg) rotateX(0deg)';
+});
 </script>
 </body>
 </html>

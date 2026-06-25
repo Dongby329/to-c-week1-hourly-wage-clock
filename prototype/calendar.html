@@ -12,8 +12,14 @@ body {
   display:flex;align-items:center;justify-content:center;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  perspective:800px;
 }
-main { position:relative;z-index:1;width:380px;padding:2rem 1.5rem;text-align:center; }
+main {
+  position:relative;z-index:1;width:380px;padding:2rem 1.5rem;text-align:center;
+  background:#0f0f13;border:1px solid #1a1a20;border-radius:16px;
+  transform-style:preserve-3d;transition:transform 0.15s ease-out;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
 
 .top { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
 .top span { font-size:12px;color:#6b6b75;letter-spacing:1px; }
@@ -177,6 +183,18 @@ render();
   setTimeout(function(){build();requestAnimationFrame(tick);},100);
   window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
 })();
+
+// 3D Tilt
+var ccard=document.querySelector('main');
+ccard.addEventListener('mousemove',function(e){
+  var r=ccard.getBoundingClientRect();
+  var x=(e.clientX-r.left)/r.width-0.5;
+  var y=(e.clientY-r.top)/r.height-0.5;
+  ccard.style.transform='rotateY('+(x*14)+'deg) rotateX('+(-y*14)+'deg)';
+});
+ccard.addEventListener('mouseleave',function(){
+  ccard.style.transform='rotateY(0deg) rotateX(0deg)';
+});
 </script>
 </body>
 </html>
