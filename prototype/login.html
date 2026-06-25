@@ -1,271 +1,120 @@
-<!-- 时薪桌面钟 · 登录/注册 -->
+<!-- 时薪桌面钟 · 登录 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录 · 时薪桌面钟</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #09090b; --surface: #111114; --border: #222228;
-            --text: #e4e4e7; --muted: #71717a; --accent: #f59e0b;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg:#08080c;--surface:#0f0f13;--border:#1e1e24;--text:#ededef;--muted:#6b6b75;--accent:#f59e0b; }
+        * { margin:0;padding:0;box-sizing:border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            -webkit-font-smoothing: antialiased;
+            font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
+            background:var(--bg);color:var(--text);min-height:100vh;
+            display:flex;align-items:center;justify-content:center;
+            -webkit-font-smoothing:antialiased;overflow:hidden;
         }
-        body::before {
-            content: ''; position: fixed; inset: 0;
-            background: linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
-            background-size: 60px 60px; pointer-events: none;
-            mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 70%);
-            -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 70%);
-        }
-        .auth-container {
-            position: relative; z-index: 1;
-            width: 360px; padding: 2rem;
-            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-header { text-align: center; margin-bottom: 32px; }
-        .auth-icon { font-size: 32px; margin-bottom: 12px; display: block; }
-        .auth-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 4px; }
-        .auth-subtitle { font-size: 13px; color: var(--muted); }
-
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+        .waves-bg { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
+        .waves-bg canvas { display:block;width:100%;height:100%; }
+        .auth { position:relative;z-index:1;width:340px;padding:2rem;animation:fadeUp .6s ease; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .auth-header { text-align:center;margin-bottom:36px; }
+        .auth-title { font-family:'Press Start 2P',monospace;font-size:13px;color:#fff;letter-spacing:2px;margin-bottom:12px; }
+        .auth-sub { font-size:12px;color:var(--muted);letter-spacing:0.5px; }
+        .form-group { margin-bottom:14px; }
+        .form-label { display:block;font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase; }
         .form-input {
-            width: 100%; padding: 12px 14px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 10px; color: var(--text); font-size: 14px;
-            font-family: inherit; transition: all 0.2s; outline: none;
+            width:100%;padding:10px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);
+            border-radius:4px;color:var(--text);font-size:13px;font-family:inherit;
+            transition:all .2s;outline:none;
         }
-        .form-input:focus { border-color: #52525b; background: #18181b; }
-        .form-input::placeholder { color: #3f3f46; }
-
+        .form-input:focus { border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.02); }
+        .form-input::placeholder { color:#3a3a40; }
         .form-btn {
-            width: 100%; padding: 12px; border-radius: 10px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            font-family: inherit; border: none; transition: all 0.2s;
-            background: #fafafa; color: #09090b;
-            margin-top: 8px;
+            width:100%;padding:10px;border-radius:4px;font-size:12px;font-weight:500;
+            cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:1px;
+            background:transparent;border:1px solid rgba(255,255,255,0.2);color:#d4d4d8;
+            margin-top:8px;
         }
-        .form-btn:hover { background: #fff; }
-        .form-btn.secondary {
-            background: transparent; color: var(--muted);
-            border: 1px solid var(--border); margin-top: 8px;
-        }
-        .form-btn.secondary:hover { background: var(--surface); color: var(--text); }
-
-        .form-error {
-            font-size: 12px; color: #ef4444; text-align: center;
-            min-height: 20px; line-height: 20px; margin-top: 4px;
-        }
-
-        .user-list { margin-top: 24px; }
-        .user-list-label { font-size: 11px; color: #3f3f46; text-align: center; margin-bottom: 8px; }
+        .form-btn:hover { background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.4);color:#fff; }
+        .form-btn.sec { border-color:rgba(255,255,255,0.06);color:var(--muted);margin-top:6px; }
+        .form-btn.sec:hover { border-color:rgba(255,255,255,0.15);color:#a1a1aa; }
+        .form-error { font-size:11px;color:#ef4444;text-align:center;min-height:18px;line-height:18px; }
+        .user-list { margin-top:28px;text-align:center; }
+        .user-list-label { font-size:9px;color:#3a3a40;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase; }
         .user-chip {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 6px 14px; border-radius: 20px;
-            background: var(--surface); border: 1px solid var(--border);
-            font-size: 12px; cursor: pointer; transition: all 0.2s;
-            margin: 3px; color: var(--muted);
+            display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:4px;
+            background:transparent;border:1px solid rgba(255,255,255,0.06);font-size:11px;
+            cursor:pointer;transition:all .2s;margin:3px;color:var(--muted);
         }
-        .user-chip:hover { border-color: #52525b; color: var(--text); }
-        .user-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-
-        .back-link { text-align: center; margin-top: 24px; }
-        .back-link a { font-size: 12px; color: #3f3f46; text-decoration: none; transition: color 0.2s; }
-        .back-link a:hover { color: var(--muted); }
+        .user-chip:hover { border-color:rgba(255,255,255,0.2);color:var(--text); }
+        .user-chip .dot { width:5px;height:5px;border-radius:50%;background:var(--accent); }
+        .back { text-align:center;margin-top:28px; }
+        .back a { font-size:10px;color:#3a3a40;text-decoration:none;transition:color .2s;letter-spacing:1px; }
+        .back a:hover { color:var(--muted); }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-header">
-            <span class="auth-icon">⏳</span>
-            <h1 class="auth-title" id="authTitle">欢迎回来</h1>
-            <p class="auth-subtitle" id="authSubtitle">登录你的账户，继续计时</p>
-        </div>
-
-        <form id="authForm" onsubmit="handleSubmit(event)">
-            <div class="form-group">
-                <label class="form-label">用户名</label>
-                <input type="text" class="form-input" id="username" placeholder="输入用户名" required autocomplete="off">
-            </div>
-            <div class="form-group" id="passwordGroup">
-                <label class="form-label">密码</label>
-                <input type="password" class="form-input" id="password" placeholder="输入密码" autocomplete="off">
-            </div>
-            <div class="form-error" id="formError"></div>
-            <button type="submit" class="form-btn" id="submitBtn">登 录</button>
-        </form>
-
-        <button class="form-btn secondary" id="toggleModeBtn" onclick="toggleMode()">还没有账号？注册</button>
-
-        <div class="user-list" id="userList" style="display:none;">
-            <div class="user-list-label">已有账号，快速登录</div>
-            <div style="text-align:center;" id="userChips"></div>
-        </div>
-
-        <div class="back-link">
-            <a href="hero.html">← 返回首页</a>
-        </div>
+<div class="waves-bg" id="wavesBg"><canvas id="wavesCanvas"></canvas></div>
+<div class="auth">
+    <div class="auth-header">
+        <h1 class="auth-title" id="authTitle">SIGN IN</h1>
+        <p class="auth-sub" id="authSubtitle">continue your session</p>
     </div>
-
-    <script>
-        const USERS_KEY = 'wageClock_users';
-        const CURRENT_USER_KEY = 'wageClock_currentUser';
-
-        let isRegisterMode = false;
-
-        function getUsers() {
-            try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; }
-            catch(e) { return {}; }
-        }
-        function saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
-        function setCurrentUser(userId) { sessionStorage.setItem(CURRENT_USER_KEY, userId); }
-        function getCurrentUser() { return sessionStorage.getItem(CURRENT_USER_KEY); }
-
-        // Simple hash for prototype (not secure, just for demo)
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash |= 0;
-            }
-            return 'h_' + Math.abs(hash).toString(36);
-        }
-
-        function renderUserChips() {
-            const users = getUsers();
-            const ids = Object.keys(users);
-            const container = document.getElementById('userChips');
-            const list = document.getElementById('userList');
-
-            if (ids.length === 0) {
-                list.style.display = 'none';
-                return;
-            }
-            list.style.display = 'block';
-            container.innerHTML = ids.map(id =>
-                `<span class="user-chip" onclick="quickLogin('${id}')">
-                    <span class="dot"></span>${users[id].username}
-                </span>`
-            ).join('');
-        }
-
-        function quickLogin(userId) {
-            document.getElementById('username').value = userId;
-            document.getElementById('password').value = '';
-            document.getElementById('passwordGroup').style.display = 'none';
-            document.getElementById('formError').textContent = '';
-            setCurrentUser(userId);
-            goToClock();
-        }
-
-        function toggleMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('authTitle').textContent = isRegisterMode ? '创建账户' : '欢迎回来';
-            document.getElementById('authSubtitle').textContent = isRegisterMode ? '设置你的账户，数据独立存储' : '登录你的账户，继续计时';
-            document.getElementById('submitBtn').textContent = isRegisterMode ? '注 册' : '登 录';
-            document.getElementById('toggleModeBtn').textContent = isRegisterMode ? '已有账号？登录' : '还没有账号？注册';
-            document.getElementById('passwordGroup').style.display = 'block';
-            document.getElementById('formError').textContent = '';
-        }
-
-        function handleSubmit(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const errorEl = document.getElementById('formError');
-
-            if (!username || username.length < 2) {
-                errorEl.textContent = '用户名至少2个字符';
-                return;
-            }
-
-            const users = getUsers();
-
-            if (isRegisterMode) {
-                // Register
-                if (!password || password.length < 3) {
-                    errorEl.textContent = '密码至少3个字符';
-                    return;
-                }
-                if (users[username]) {
-                    errorEl.textContent = '该用户名已存在';
-                    return;
-                }
-                users[username] = {
-                    id: username,
-                    username: username,
-                    passwordHash: simpleHash(password),
-                    createdAt: new Date().toISOString().slice(0, 10)
-                };
-                saveUsers(users);
-                setCurrentUser(username);
-                goToClock();
-            } else {
-                // Login
-                if (users[username]) {
-                    // Existing user with password
-                    if (password && users[username].passwordHash === simpleHash(password)) {
-                        setCurrentUser(username);
-                        goToClock();
-                    } else if (!password && users[username].passwordHash) {
-                        errorEl.textContent = '请输入密码';
-                    } else {
-                        errorEl.textContent = '密码错误';
-                    }
-                } else {
-                    // New user - quick create
-                    if (!password) {
-                        // Quick login without password
-                        users[username] = {
-                            id: username,
-                            username: username,
-                            passwordHash: '',
-                            createdAt: new Date().toISOString().slice(0, 10)
-                        };
-                        saveUsers(users);
-                        setCurrentUser(username);
-                        goToClock();
-                    } else {
-                        users[username] = {
-                            id: username,
-                            username: username,
-                            passwordHash: simpleHash(password),
-                            createdAt: new Date().toISOString().slice(0, 10)
-                        };
-                        saveUsers(users);
-                        setCurrentUser(username);
-                        goToClock();
-                    }
-                }
-            }
-        }
-
-        function goToClock() {
-            window.location.href = 'clock.html';
-        }
-
-        // Init
-        renderUserChips();
-
-        // If already logged in, go to clock
-        const current = getCurrentUser();
-        if (current && getUsers()[current]) {
-            goToClock();
-        }
-    </script>
+    <form id="authForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" id="username" placeholder="enter username" required autocomplete="off">
+        </div>
+        <div class="form-group" id="passwordGroup">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="password" placeholder="enter password" autocomplete="off">
+        </div>
+        <div class="form-error" id="formError"></div>
+        <button type="submit" class="form-btn" id="submitBtn">Sign In</button>
+    </form>
+    <button class="form-btn sec" id="toggleModeBtn" onclick="toggleMode()">Create Account</button>
+    <div class="user-list" id="userList" style="display:none;">
+        <div class="user-list-label">Quick Switch</div>
+        <div id="userChips"></div>
+    </div>
+    <div class="back"><a href="hero.html">← back</a></div>
+</div>
+<script>
+const UK='wageClock_users',CK='wageClock_currentUser';let isReg=false;
+function gU(){try{return JSON.parse(localStorage.getItem(UK))||{}}catch(e){return{}}}
+function sU(u){localStorage.setItem(UK,JSON.stringify(u));}
+function sCU(id){sessionStorage.setItem(CK,id);}
+function gCU(){return sessionStorage.getItem(CK);}
+function hash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return'h_'+Math.abs(h).toString(36);}
+function renderChips(){const u=gU(),ids=Object.keys(u),c=document.getElementById('userChips'),l=document.getElementById('userList');if(!ids.length){l.style.display='none';return;}l.style.display='block';c.innerHTML=ids.map(i=>`<span class="user-chip" onclick="quickLogin('${i}')"><span class="dot"></span>${u[i].username}</span>`).join('');}
+function quickLogin(id){sCU(id);go();}
+function toggleMode(){isReg=!isReg;document.getElementById('authTitle').textContent=isReg?'REGISTER':'SIGN IN';document.getElementById('authSubtitle').textContent=isReg?'create your account':'continue your session';document.getElementById('submitBtn').textContent=isReg?'Register':'Sign In';document.getElementById('toggleModeBtn').textContent=isReg?'Sign In Instead':'Create Account';document.getElementById('passwordGroup').style.display='block';document.getElementById('formError').textContent='';}
+function handleSubmit(e){e.preventDefault();const un=document.getElementById('username').value.trim(),pw=document.getElementById('password').value,er=document.getElementById('formError');if(!un||un.length<2){er.textContent='username too short';return;}const u=gU();if(isReg){if(!pw||pw.length<3){er.textContent='password too short';return;}if(u[un]){er.textContent='username exists';return;}u[un]={id:un,username:un,passwordHash:hash(pw),createdAt:new Date().toISOString().slice(0,10)};sU(u);sCU(un);go();}else{if(u[un]){if(pw&&u[un].passwordHash===hash(pw)){sCU(un);go();}else if(pw){er.textContent='wrong password';}else{er.textContent='enter password';}}else{if(!pw){u[un]={id:un,username:un,passwordHash:'',createdAt:new Date().toISOString().slice(0,10)};sU(u);sCU(un);go();}else{u[un]={id:un,username:un,passwordHash:hash(pw),createdAt:new Date().toISOString().slice(0,10)};sU(u);sCU(un);go();}}}}
+function go(){window.location.href='clock.html';}
+// Waves (reuse same engine)
+(function(){
+    const c=document.getElementById('wavesBg'),cv=document.getElementById('wavesCanvas'),ctx=cv.getContext('2d');
+    class Grad{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}dot2(x,y){return this.x*x+this.y*y;}}
+    class Noise{constructor(s=0){this.grad3=[new Grad(1,1,0),new Grad(-1,1,0),new Grad(1,-1,0),new Grad(-1,-1,0),new Grad(1,0,1),new Grad(-1,0,1),new Grad(1,0,-1),new Grad(-1,0,-1),new Grad(0,1,1),new Grad(0,-1,1),new Grad(0,1,-1),new Grad(0,-1,-1)];this.p=[151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];this.perm=new Array(512);this.gradP=new Array(512);this.seed(s);}
+    seed(s){if(s>0&&s<1)s*=65536;s=Math.floor(s);if(s<256)s|=s<<8;for(let i=0;i<256;i++){let v=i&1?this.p[i]^(s&255):this.p[i]^((s>>8)&255);this.perm[i]=this.perm[i+256]=v;this.gradP[i]=this.gradP[i+256]=this.grad3[v%12];}}
+    fade(t){return t*t*t*(t*(t*6-15)+10);}lerp(a,b,t){return(1-t)*a+t*b;}
+    perlin2(x,y){let X=Math.floor(x),Y=Math.floor(y);x-=X;y-=Y;X&=255;Y&=255;const n00=this.gradP[X+this.perm[Y]].dot2(x,y);const n01=this.gradP[X+this.perm[Y+1]].dot2(x,y-1);const n10=this.gradP[X+1+this.perm[Y]].dot2(x-1,y);const n11=this.gradP[X+1+this.perm[Y+1]].dot2(x-1,y-1);const u=this.fade(x);return this.lerp(this.lerp(n00,n10,u),this.lerp(n01,n11,u),this.fade(y));}}
+    const cfg={waveSpeedX:0.01,waveSpeedY:0.004,waveAmpX:48,waveAmpY:24,xGap:8,yGap:28,friction:0.93,tension:0.005,maxCursorMove:120};
+    const noise=new Noise(Math.random());let lines=[],bd={w:0,h:0};const ms={x:-10,y:0,lx:0,ly:0,sx:0,sy:0,v:0,vs:0,a:0,set:false};
+    function sz(){const r=c.getBoundingClientRect();bd.w=r.width;bd.h=r.height;cv.width=r.width;cv.height=r.height;}
+    function sl(){const{w,h}=bd;lines=[];const oW=w+300,oH=h+40;const tl=Math.ceil(oW/cfg.xGap),tp=Math.ceil(oH/cfg.yGap);const xS=(w-cfg.xGap*tl)/2,yS=(h-cfg.yGap*tp)/2;for(let i=0;i<=tl;i++){const p=[];for(let j=0;j<=tp;j++)p.push({x:xS+cfg.xGap*i,y:yS+cfg.yGap*j,wave:{x:0,y:0},cursor:{x:0,y:0,vx:0,vy:0}});lines.push(p);}}
+    function mp(t){lines.forEach(pts=>pts.forEach(p=>{const m=noise.perlin2((p.x+t*cfg.waveSpeedX)*0.0015,(p.y+t*cfg.waveSpeedY)*0.0012)*12;p.wave.x=Math.cos(m)*cfg.waveAmpX;p.wave.y=Math.sin(m)*cfg.waveAmpY;const dx=p.x-ms.sx,dy=p.y-ms.sy;const dist=Math.hypot(dx,dy),l=Math.max(200,ms.vs);if(dist<l){const s=1-dist/l,f=Math.cos(dist*0.0008)*s;p.cursor.vx+=Math.cos(ms.a)*f*l*ms.vs*0.0005;p.cursor.vy+=Math.sin(ms.a)*f*l*ms.vs*0.0005;}p.cursor.vx+=(0-p.cursor.x)*cfg.tension;p.cursor.vy+=(0-p.cursor.y)*cfg.tension;p.cursor.vx*=cfg.friction;p.cursor.vy*=cfg.friction;p.cursor.x+=p.cursor.vx*2;p.cursor.y+=p.cursor.vy*2;p.cursor.x=Math.min(cfg.maxCursorMove,Math.max(-cfg.maxCursorMove,p.cursor.x));p.cursor.y=Math.min(cfg.maxCursorMove,Math.max(-cfg.maxCursorMove,p.cursor.y));}));}
+    function mv(p,wc){const x=p.x+p.wave.x+(wc!==false?p.cursor.x:0),y=p.y+p.wave.y+(wc!==false?p.cursor.y:0);return{x:Math.round(x*10)/10,y:Math.round(y*10)/10};}
+    function dl(){ctx.clearRect(0,0,bd.w,bd.h);ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=2;lines.forEach(pts=>{let p1=mv(pts[0],false);ctx.moveTo(p1.x,p1.y);pts.forEach((p,idx)=>{const il=idx===pts.length-1;p1=mv(p,!il);const p2=mv(pts[idx+1]||pts[pts.length-1],!il);ctx.lineTo(p1.x,p1.y);if(il)ctx.moveTo(p2.x,p2.y);});});ctx.stroke();}
+    function tick(t){ms.sx+=(ms.x-ms.sx)*0.1;ms.sy+=(ms.y-ms.sy)*0.1;const dx=ms.x-ms.lx,dy=ms.y-ms.ly;ms.v=Math.hypot(dx,dy);ms.vs+=(ms.v-ms.vs)*0.1;ms.vs=Math.min(100,ms.vs);ms.lx=ms.x;ms.ly=ms.y;ms.a=Math.atan2(dy,dx);mp(t);dl();requestAnimationFrame(tick);}
+    function om(e){const b=c.getBoundingClientRect();ms.x=e.clientX-b.left;ms.y=e.clientY-b.top;if(!ms.set){ms.sx=ms.x;ms.sy=ms.y;ms.lx=ms.x;ms.ly=ms.y;ms.set=true;}}
+    sz();sl();window.addEventListener('resize',()=>{sz();sl();});window.addEventListener('mousemove',om);requestAnimationFrame(tick);
+})();
+// Init
+renderChips();
+const cur=gCU();if(cur&&gU()[cur])go();
+</script>
 </body>
 </html>
