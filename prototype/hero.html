@@ -29,6 +29,36 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* Bill animation layer */
+        .bills-layer {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            overflow: hidden;
+        }
+        .bill {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0;
+            filter: blur(0.5px);
+            animation: billFloat 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: var(--d);
+        }
+        @keyframes billFloat {
+            0%   { transform: translateY(110vh) rotate(0deg) scale(0.6); opacity: 0; }
+            30%  { opacity: 0.12; }
+            70%  { transform: translateY(var(--y)) translateX(var(--x)) rotate(var(--r)) scale(1); opacity: 0.08; }
+            100% { transform: translateY(var(--y)) translateX(var(--x)) rotate(calc(var(--r) + 360deg)) scale(1); opacity: 0.06; }
+        }
+        /* Continuous slow spin after arrival */
+        .bill.spin {
+            animation: billFloat 8s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                       billSpin 12s linear infinite;
+            animation-delay: var(--d), 8s;
+        }
+        @keyframes billSpin {
+            from { transform: translateY(var(--y)) translateX(var(--x)) rotate(var(--r)) scale(1); }
+            to   { transform: translateY(var(--y)) translateX(var(--x)) rotate(calc(var(--r) + 360deg)) scale(1); }
+        }
+
         /* Subtle grid background */
         body::before {
             content: '';
@@ -116,6 +146,7 @@
     </style>
 </head>
 <body>
+    <div class="bills-layer" id="billsLayer"></div>
     <div class="hero-container">
         <h1 class="hero-title" id="heroTitle"></h1>
         <div>
@@ -205,6 +236,26 @@
         });
     }
 
+    // ============ BILL BACKGROUND ANIMATION ============
+    function spawnBills() {
+        const layer = document.getElementById('billsLayer');
+        const bills = ['💵', '💴', '💶', '💷', '💰', '🪙'];
+        const count = 18;
+
+        for (let i = 0; i < count; i++) {
+            const bill = document.createElement('span');
+            bill.className = 'bill spin';
+            bill.textContent = bills[i % bills.length];
+            bill.style.setProperty('--d', (i * 0.3 + Math.random() * 0.5) + 's');
+            bill.style.setProperty('--x', ((Math.random() - 0.5) * 60) + 'vw');
+            bill.style.setProperty('--y', ((Math.random() - 0.5) * 30) + 'vh');
+            bill.style.setProperty('--r', (Math.random() * 360) + 'deg');
+            bill.style.left = (10 + Math.random() * 80) + '%';
+            bill.style.fontSize = (24 + Math.random() * 48) + 'px';
+            layer.appendChild(bill);
+        }
+    }
+
     (function init() {
         const userId = getCurrentUser();
         if (userId && getUsers()[userId]) {
@@ -214,7 +265,8 @@
             document.getElementById('heroBtn').textContent = '进入时钟';
             document.getElementById('heroBtn').href = 'clock.html';
         }
-        // Trigger shuffle title with time-based greeting
+        // Trigger background bills + shuffle title
+        spawnBills();
         setTimeout(() => shuffleTitle(getGreeting(), 'heroTitle'), 300);
     })();
 </script>
