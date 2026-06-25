@@ -6,6 +6,7 @@
 <title>时薪桌面钟</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
+canvas { position:fixed; inset:0; z-index:0; pointer-events:none; display:block; }
 body {
   background: #08080c; color: #ededef;
   min-height: 100vh; display: flex;
@@ -13,7 +14,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-main { text-align: center; padding: 2rem; }
+main { position:relative; z-index:1; text-align: center; padding: 2rem; }
 h1 {
   font-family: 'Courier New', monospace;
   font-size: 28px; font-weight: 400; color: #fff;
@@ -38,6 +39,7 @@ h2 {
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas>
 <main>
   <h1 id="t1"></h1>
   <h2>fellow worker</h2>
@@ -58,6 +60,53 @@ if(u){ try{
   var users = JSON.parse(localStorage.getItem('wageClock_users')||'{}');
   if(users[u]){ document.getElementById('w').style.display='block'; document.getElementById('wu').textContent=u; document.getElementById('btn').href='clock.html'; }
 }catch(e){} }
+
+// DotGrid background
+(function(){
+  var cv=document.getElementById('bg'), ctx=cv.getContext('2d');
+  var S=3,G=28,P=120,R=0.08,F=0.88,W=0,H=0,dots=[];
+  var pt={x:-999,y:-999,px:0,py:0,vx:0,vy:0};
+  function build(){
+    var r=cv.parentNode.getBoundingClientRect();
+    W=r.width;H=r.height;
+    var dpr=devicePixelRatio||1;
+    cv.width=W*dpr;cv.height=H*dpr;
+    cv.style.width=W+'px';cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var cell=S+G,cols=Math.floor(W/cell),rows=Math.floor(H/cell);
+    var gW=cell*cols,gH=cell*rows;
+    var ox=(W-gW)/2+S/2,oy=(H-gH)/2+S/2;
+    dots=[];
+    for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)dots.push({cx:ox+c*cell,cy:oy+r*cell,x:0,y:0,vx:0,vy:0});
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    var psq=P*P;
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],ox=d.cx+d.x,oy=d.cy+d.y;
+      var dx=d.cx-pt.x,dy=d.cy-pt.y,dsq=dx*dx+dy*dy;
+      var a=0.1;if(dsq<psq){var t=1-Math.sqrt(dsq)/P;a=0.1+t*0.45;}
+      ctx.beginPath();ctx.arc(ox,oy,S/2,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';ctx.fill();
+    }
+  }
+  function upd(){
+    pt.vx+=(pt.x-pt.px-pt.vx)*0.3;pt.vy+=(pt.y-pt.py-pt.vy)*0.3;
+    pt.px=pt.x;pt.py=pt.y;var spd=Math.hypot(pt.vx,pt.vy);
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],dx=d.cx-pt.x,dy=d.cy-pt.y,dist=Math.hypot(dx,dy);
+      if(dist<P&&spd>5){var f=(1-dist/P)*spd*0.015;d.vx+=(dx/dist)*f;d.vy+=(dy/dist)*f;}
+      d.vx+=(0-d.x)*R;d.vy+=(0-d.y)*R;d.vx*=F;d.vy*=F;d.x+=d.vx;d.y+=d.vy;
+    }
+  }
+  function tick(){upd();draw();requestAnimationFrame(tick);}
+  function mv(e){var r=cv.getBoundingClientRect();pt.x=e.clientX-r.left;pt.y=e.clientY-r.top;}
+  function cl(e){var r=cv.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+    for(var i=0;i<dots.length;i++){var d=dots[i],dist=Math.hypot(d.cx-cx,d.cy-cy);
+    if(dist<200){var f=(1-dist/200)*12;d.vx+=(d.cx-cx)/dist*f;d.vy+=(d.cy-cy)/dist*f;}}}
+  setTimeout(function(){build();requestAnimationFrame(tick);},100);
+  window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
+})();
 </script>
 </body>
 </html>
