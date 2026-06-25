@@ -92,6 +92,25 @@
         .hero-stat:last-child { border-radius: 0 8px 8px 0; }
         .hero-stat strong { color: var(--text); font-weight: 600; }
 
+        /* Welcome section (logged-in users) */
+        .welcome-section { margin-bottom: 48px; }
+        .welcome-greeting {
+            font-size: 18px; font-weight: 600; color: var(--text);
+            margin-bottom: 6px; letter-spacing: -0.2px;
+        }
+        .welcome-user {
+            font-size: 14px; color: var(--muted); margin-bottom: 14px;
+        }
+        .welcome-user strong { color: var(--accent); font-weight: 700; }
+        .switch-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 5px 14px; border-radius: 20px;
+            border: 1px solid var(--border); background: transparent;
+            color: var(--muted); font-size: 11px; cursor: pointer;
+            font-family: inherit; transition: all 0.2s;
+        }
+        .switch-btn:hover { border-color: #52525b; color: var(--text); background: rgba(255,255,255,0.03); }
+
         .hero-btn {
             display: inline-block;
             padding: 14px 48px;
@@ -121,23 +140,61 @@
         <div class="hero-icon">⏳</div>
 
         <h1 class="hero-title">时薪桌面钟</h1>
-        <p class="hero-subtitle">
+        <p class="hero-subtitle" id="heroSubtitle">
             看见时间的重量。<br>每一秒，都值得被计算。
         </p>
 
-        <div class="hero-stats">
+        <!-- Logged-in: welcome area -->
+        <div class="welcome-section" id="welcomeSection" style="display:none;">
+            <div class="welcome-greeting">欢迎回来</div>
+            <div class="welcome-user"><strong id="welcomeUsername"></strong></div>
+            <button class="switch-btn" onclick="switchAccount()">⇄ 切换账号</button>
+        </div>
+
+        <!-- Not logged-in: stats -->
+        <div class="hero-stats" id="heroStats">
             <div class="hero-stat">月薪 <strong>自定义</strong></div>
             <div class="hero-stat">实时 <strong>秒级</strong></div>
             <div class="hero-stat">智能 <strong>自动检测</strong></div>
         </div>
 
         <div>
-            <a href="login.html" class="hero-btn">开始使用</a>
+            <a href="login.html" class="hero-btn" id="heroBtn">开始使用</a>
         </div>
 
-        <div class="hero-footer">
+        <div class="hero-footer" id="heroFooter">
             已有账号？<a href="login.html" style="color:#a1a1aa;">登录</a>
         </div>
     </div>
+<script>
+    const USERS_KEY = 'wageClock_users';
+    const CURRENT_USER_KEY = 'wageClock_currentUser';
+
+    function getCurrentUser() {
+        return sessionStorage.getItem(CURRENT_USER_KEY);
+    }
+    function getUsers() {
+        try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; }
+        catch(e) { return {}; }
+    }
+    function switchAccount() {
+        sessionStorage.removeItem(CURRENT_USER_KEY);
+        window.location.href = 'login.html';
+    }
+
+    (function init() {
+        const userId = getCurrentUser();
+        if (userId && getUsers()[userId]) {
+            // Logged in
+            document.getElementById('heroSubtitle').textContent = '每一天的努力，都清晰可见。';
+            document.getElementById('welcomeSection').style.display = 'block';
+            document.getElementById('welcomeUsername').textContent = userId;
+            document.getElementById('heroStats').style.display = 'none';
+            document.getElementById('heroBtn').textContent = '进入时钟';
+            document.getElementById('heroBtn').href = 'clock.html';
+            document.getElementById('heroFooter').innerHTML = '<span style="color:#3f3f46;">不是' + userId + '？</span> <a href="#" onclick="switchAccount()" style="color:#a1a1aa;">切换账号</a>';
+        }
+    })();
+</script>
 </body>
 </html>
