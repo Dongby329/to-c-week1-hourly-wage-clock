@@ -147,7 +147,7 @@ function getGreeting(){
 }
 
 // ===== DOTGRID =====
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
   var c = document.getElementById('bg');
   var cv = document.getElementById('bgCanvas');
   var ctx = cv.getContext('2d');
@@ -228,10 +228,10 @@ function getGreeting(){
   window.addEventListener('mousemove', onMouse, {passive:true});
   window.addEventListener('click', onClick);
   requestAnimationFrame(tick);
-})();
+});
 
 // ===== INIT =====
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
   var userId = gCU();
   if(userId && gU()[userId]){
     document.getElementById('welcomeSection').style.display = 'block';
@@ -240,10 +240,9 @@ function getGreeting(){
     document.getElementById('heroBtn').href = 'clock.html';
   }
 
-  // Display text immediately — static, no animation
   document.getElementById('titleLine').textContent = getGreeting();
   document.getElementById('titleSub').textContent = 'fellow worker';
-})();
+});
 </script>
 </body>
 </html>
