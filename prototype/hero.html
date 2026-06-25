@@ -129,10 +129,6 @@
         }
         .hero-btn:active { transform: translateY(0); }
 
-        .hero-footer {
-            margin-top: 32px;
-            font-size: 12px; color: #3f3f46;
-        }
     </style>
 </head>
 <body>
@@ -151,9 +147,6 @@
             <button class="switch-btn" onclick="switchAccount()">⇄ 切换账号</button>
         </div>
 
-        <div class="hero-footer" id="heroFooter">
-            已有账号？<a href="login.html" style="color:#a1a1aa;">登录</a>
-        </div>
     </div>
 <script>
     const USERS_KEY = 'wageClock_users';
@@ -238,7 +231,6 @@
             document.getElementById('welcomeUsername').textContent = userId;
             document.getElementById('heroBtn').textContent = '进入时钟';
             document.getElementById('heroBtn').href = 'clock.html';
-            document.getElementById('heroFooter').innerHTML = '<span style="color:#3f3f46;">不是' + userId + '？</span> <a href="#" onclick="switchAccount()" style="color:#a1a1aa;">切换账号</a>';
         }
         // Trigger shuffle title with time-based greeting
         setTimeout(() => shuffleTitle(getGreeting(), 'heroTitle'), 300);
