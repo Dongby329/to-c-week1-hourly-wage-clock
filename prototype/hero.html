@@ -71,7 +71,7 @@
 
         .hero-title {
             font-size: 32px; font-weight: 700;
-            letter-spacing: -0.5px; margin-bottom: 8px;
+            letter-spacing: -0.5px; margin-bottom: 48px;
             background: linear-gradient(135deg, #e4e4e7 0%, #a1a1aa 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -92,22 +92,6 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .hero-subtitle {
-            font-size: 15px; color: var(--muted);
-            line-height: 1.6; margin-bottom: 40px;
-            max-width: 320px; margin-left: auto; margin-right: auto;
-        }
-        .hero-stats {
-            display: flex; gap: 2px; justify-content: center; margin-bottom: 48px;
-        }
-        .hero-stat {
-            background: var(--surface); border: 1px solid var(--border);
-            padding: 8px 16px; font-size: 12px; color: var(--muted);
-        }
-        .hero-stat:first-child { border-radius: 8px 0 0 8px; }
-        .hero-stat:last-child { border-radius: 0 8px 8px 0; }
-        .hero-stat strong { color: var(--text); font-weight: 600; }
-
         /* Welcome section (logged-in users) */
         .welcome-section { margin-bottom: 48px; }
         .welcome-greeting {
@@ -156,13 +140,6 @@
         <div class="hero-icon">⏳</div>
 
         <h1 class="hero-title" id="heroTitle"></h1>
-        <!-- Not logged-in: stats -->
-        <div class="hero-stats" id="heroStats">
-            <div class="hero-stat">月薪 <strong>自定义</strong></div>
-            <div class="hero-stat">实时 <strong>秒级</strong></div>
-            <div class="hero-stat">智能 <strong>自动检测</strong></div>
-        </div>
-
         <div>
             <a href="login.html" class="hero-btn" id="heroBtn">开始使用</a>
         </div>
@@ -259,7 +236,6 @@
             // Logged in
             document.getElementById('welcomeSection').style.display = 'block';
             document.getElementById('welcomeUsername').textContent = userId;
-            document.getElementById('heroStats').style.display = 'none';
             document.getElementById('heroBtn').textContent = '进入时钟';
             document.getElementById('heroBtn').href = 'clock.html';
             document.getElementById('heroFooter').innerHTML = '<span style="color:#3f3f46;">不是' + userId + '？</span> <a href="#" onclick="switchAccount()" style="color:#a1a1aa;">切换账号</a>';
