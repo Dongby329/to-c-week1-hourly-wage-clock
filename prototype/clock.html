@@ -32,9 +32,9 @@ main { position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:ce
 }
 .pill .dot { width:5px;height:5px;border-radius:50%; }
 .pill.before { background:rgba(113,113,122,0.08);color:#a1a1aa; } .pill.before .dot { background:#a1a1aa; }
-.pill.working { background:rgba(245,158,11,0.08);color:#f59e0b; } .pill.working .dot { background:#f59e0b;animation:breathe 1.5s infinite; }
-.pill.after { background:rgba(245,158,11,0.08);color:#f59e0b; } .pill.after .dot { background:#f59e0b; }
-.pill.overtime { background:rgba(245,158,11,0.12);color:#f59e0b; } .pill.overtime .dot { background:#f59e0b;animation:breathe 0.8s infinite; }
+.pill.working { background:rgba(52,211,153,0.08);color:#34d399; } .pill.working .dot { background:#34d399;animation:breathe 1.5s infinite; }
+.pill.after { background:rgba(251,191,36,0.08);color:#fbbf24; } .pill.after .dot { background:#fbbf24; }
+.pill.overtime { background:rgba(248,113,113,0.12);color:#f87171; } .pill.overtime .dot { background:#f87171;animation:breathe 0.8s infinite; }
 .pill.rest { background:rgba(113,113,122,0.08);color:#a1a1aa; } .pill.rest .dot { background:#a1a1aa; }
 @keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(1.8)} }
 
@@ -63,14 +63,6 @@ main { position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:ce
 .bd { display:none;font-size:10px;color:#6b6b75;margin-bottom:2px; }
 .overtime .bd { display:block; }
 .bd span { margin:0 6px; }
-
-/* Progress */
-.prog { margin:14px 0 16px; }
-.prog .outer { height:2px;background:rgba(255,255,255,0.04);border-radius:1px;overflow:hidden; }
-.prog .inner { height:100%;border-radius:1px;transition:width 1s linear; }
-.working .prog .inner { background:linear-gradient(90deg,#b45309,#f59e0b); }
-.after .prog .inner { width:100%;background:linear-gradient(90deg,#b45309,#f59e0b); }
-.overtime .prog .inner { width:100%;background:linear-gradient(90deg,#b45309,#f59e0b); }
 
 /* OT actions */
 .ot { display:none;margin-bottom:12px; }
@@ -108,8 +100,6 @@ main { position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:ce
     <div><span class="sym">¥</span><span class="num" id="amount">0.00</span></div>
     <div class="lbl" id="lbl">today</div>
   </div>
-
-  <div class="prog"><div class="outer"><div class="inner" id="bar" style="width:0%"></div></div></div>
 
   <div class="ot" id="otActs">
     <div class="rate" id="otLabel"></div>
@@ -187,7 +177,7 @@ function showRest(){
   updatePill('rest');document.getElementById('st').textContent='day off';
   document.getElementById('ml1').textContent='rest day';document.getElementById('ml2').textContent='';
   document.getElementById('amount').textContent='0.00';document.getElementById('lbl').textContent='paused';
-  document.getElementById('bar').style.width='0%';document.getElementById('otActs').style.display='none';
+  void('0%';document.getElementById('otActs').style.display='none';
   document.getElementById('bd').style.display='none';
 }
 function showBefore(){
@@ -198,7 +188,7 @@ function showBefore(){
   cd=Math.floor((start-now)/1000);if(cd<0)cd=5535;
   updateCD();animCD();
   document.getElementById('amount').textContent='0.00';document.getElementById('lbl').textContent='today';
-  document.getElementById('bar').style.width='0%';
+  void('0%';
 }
 function showWorking(){
   updatePill('working');document.getElementById('st').textContent='earning';
@@ -211,7 +201,6 @@ function showWorking(){
   setTimeout(function(){document.getElementById('ml1').textContent='';},4000);
   updateDisp();animWork();
   document.getElementById('lbl').textContent='earning · live';
-  updateProg();
 }
 function showAfter(){
   updatePill('after');document.getElementById('st').textContent='done';
@@ -220,7 +209,7 @@ function showAfter(){
   base=S.dailySalary;otAmt=0;acc=base;
   document.getElementById('amount').textContent=acc.toFixed(2);
   document.getElementById('lbl').textContent='today · completed';
-  document.getElementById('bar').style.width='100%';
+  void('100%';
   document.getElementById('otActs').style.display='block';
   document.getElementById('otStart').style.display='inline-block';
   document.getElementById('otStop').style.display='none';
@@ -235,7 +224,7 @@ function startOT(){
   acc=base+otAmt;updateDisp();updateBD();
   document.getElementById('bd').style.display='block';
   document.getElementById('lbl').textContent='base + ot · live';
-  document.getElementById('bar').style.width='100%';
+  void('100%';
   document.getElementById('otActs').style.display='block';
   document.getElementById('otStart').style.display='none';
   document.getElementById('otStop').style.display='inline-block';
@@ -249,7 +238,7 @@ function stopOT(){
   document.getElementById('amount').textContent=acc.toFixed(2);
   document.getElementById('lbl').textContent='total · completed';
   updateBD();document.getElementById('bd').style.display='block';
-  document.getElementById('bar').style.width='100%';
+  void('100%';
   document.getElementById('otStart').style.display='inline-block';
   document.getElementById('otStart').textContent='resume overtime';
   document.getElementById('otStop').style.display='none';
@@ -274,7 +263,7 @@ function animWork(){
     var now=Date.now(),delta=(now-lt)/1000;lt=now;
     var rem=S.dailySalary-base;
     if(rem>0.001){var add=Math.min(delta*S.perSecondRate,rem);base+=add;}
-    acc=base+otAmt;updateDisp();updateProg();
+    acc=base+otAmt;updateDisp();
     if(base>=S.dailySalary-0.001){setState('after');return;}
     raf=requestAnimationFrame(t);
   };
@@ -294,9 +283,6 @@ function updateBD(){
   document.getElementById('bdBase').textContent='¥'+base.toFixed(2);
   document.getElementById('bdOT').textContent='¥'+otAmt.toFixed(2);
 }
-function updateProg(){
-  var now=new Date(),start=gWS(),end=gWE();
-  document.getElementById('bar').style.width=Math.min(100,Math.max(0,((now-start)/(end-start))*100))+'%';
 }
 
 // Init
