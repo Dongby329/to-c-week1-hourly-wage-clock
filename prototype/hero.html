@@ -16,17 +16,17 @@ body {
 }
 main {
   position:relative; z-index:1; text-align: center; padding: 3rem 2rem;
-  width:500px;
+  width:90vw; max-width:900px;
 }
 h1 {
   font-family: 'Courier New', monospace;
-  font-size: 28px; font-weight: 400; color: #fff;
-  letter-spacing: 2px; margin-bottom: 12px;
+  font-size: clamp(32px, 6vw, 64px); font-weight: 400; color: #fff;
+  letter-spacing: 4px; margin-bottom: 16px;
 }
 h2 {
   font-family: 'Courier New', monospace;
-  font-size: 18px; font-weight: 400; color: rgba(255,255,255,0.45);
-  letter-spacing: 3px; margin-bottom: 56px;
+  font-size: clamp(18px, 3vw, 32px); font-weight: 400;
+  color: rgba(255,255,255,0.4); letter-spacing: 6px; margin-bottom: 56px;
 }
 .btn {
   display: inline-block; padding: 12px 44px; border-radius: 4px;
@@ -61,7 +61,7 @@ var g = h>=5&&h<12?'Good morning':(h>=12&&h<18?'Good afternoon':'Good evening');
 var t1=document.getElementById('t1'), t1text=g;
 t1.textContent = t1text;
 
-function gsapShuffle(el, text){
+function gsapShuffle(el, text, cw, ch){
   el.textContent = '';
   var chars = text.split('');
   var set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
@@ -70,31 +70,29 @@ function gsapShuffle(el, text){
   chars.forEach(function(ch, i){
     var wrap = document.createElement('span');
     wrap.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:bottom';
-    var cw = ch===' '?12:24;
-    wrap.style.width = cw+'px'; wrap.style.height = '48px';
+    var w = ch===' '?cw*0.5:cw;
+    wrap.style.width = w+'px'; wrap.style.height = ch+'px';
 
     var inner = document.createElement('span');
     inner.style.cssText = 'display:inline-flex;flex-direction:column;will-change:transform';
 
-    // Scramble chars + final
     for(var s=0;s<6;s++){
       var sp = document.createElement('span');
       sp.textContent = set[Math.floor(Math.random()*set.length)];
-      sp.style.cssText = 'display:block;text-align:center;height:48px;line-height:48px;font:inherit;color:inherit';
+      sp.style.cssText = 'display:block;text-align:center;height:'+ch+'px;line-height:'+ch+'px;font:inherit;color:inherit';
       inner.appendChild(sp);
     }
     var fn = document.createElement('span');
     fn.textContent = ch;
-    fn.style.cssText = 'display:block;text-align:center;height:48px;line-height:48px;font:inherit;color:inherit';
+    fn.style.cssText = 'display:block;text-align:center;height:'+ch+'px;line-height:'+ch+'px;font:inherit;color:inherit';
     inner.appendChild(fn);
 
     wrap.appendChild(inner); el.appendChild(wrap);
     strips.push({inner:inner, i:i, steps:7});
   });
 
-  // GSAP stagger animation
   strips.forEach(function(s){
-    var dist = -(s.steps-1)*48;
+    var dist = -(s.steps-1)*ch;
     gsap.set(s.inner, {y:0});
     gsap.to(s.inner, {
       y:dist, duration:0.5, ease:'power3.out',
@@ -103,7 +101,10 @@ function gsapShuffle(el, text){
   });
 }
 
-setTimeout(function(){ gsapShuffle(t1, t1text); }, 500);
+setTimeout(function(){
+  gsapShuffle(t1, t1text, 42, 72);
+  setTimeout(function(){ gsapShuffle(t2, 'fellow worker', 24, 40); }, 500);
+}, 500);
 
 var u = sessionStorage.getItem('wageClock_currentUser');
 if(u){ try{
