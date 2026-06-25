@@ -1,126 +1,182 @@
-<!-- 时薪桌面钟 · 收入日历 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>收入日历 · 时薪桌面钟</title>
-    <style>
-        :root { --bg:#09090b;--surface:#111114;--border:#222228;--text:#e4e4e7;--muted:#71717a;--accent:#f59e0b; }
-        * { margin:0;padding:0;box-sizing:border-box; }
-        body {
-            font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
-            background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;
-            -webkit-font-smoothing:antialiased;
-        }
-        body::before { content:'';position:fixed;inset:0;pointer-events:none;
-            background:radial-gradient(ellipse 50% 40% at 50% 45%,rgba(245,158,11,0.02) 0%,transparent 60%); }
-        .cal-wrap { position:relative;z-index:1;width:400px;background:var(--surface);border:1px solid var(--border);
-            border-radius:20px;padding:28px 24px 24px;animation:appear .5s cubic-bezier(.16,1,.3,1); }
-        @keyframes appear { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        .topbar { display:flex;justify-content:space-between;align-items:center;margin-bottom:24px; }
-        .topbar .brand { font-size:13px;font-weight:600;color:var(--muted); }
-        .topbar .btn { width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
-            background:transparent;color:var(--muted);cursor:pointer;font-size:14px;
-            display:flex;align-items:center;justify-content:center;transition:all .2s; }
-        .topbar .btn:hover { background:rgba(255,255,255,.04);color:var(--text); }
-        .month-nav { display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:20px; }
-        .month-nav button { width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
-            background:transparent;color:var(--muted);cursor:pointer;font-size:14px;transition:all .2s; }
-        .month-nav button:hover { background:rgba(255,255,255,.04);color:var(--text); }
-        .month-nav .mlabel { font-size:15px;font-weight:600;min-width:110px;text-align:center; }
-        .wrow { display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px; }
-        .wrow span { font-size:10px;color:var(--muted);padding:4px 0; }
-        .wrow span.we { color:#a78bfa; }
-        .grid { display:grid;grid-template-columns:repeat(7,1fr);gap:3px; }
-        .cell { aspect-ratio:1;border-radius:8px;padding:3px;text-align:center;border:1px solid transparent;
-            display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s; }
-        .cell:hover { background:rgba(255,255,255,.02); }
-        .cell.today { border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04); }
-        .cell.has { border-color:rgba(52,211,153,.08); }
-        .cnum { font-size:12px;font-weight:500; }
-        .cell.we .cnum { color:#a78bfa; }
-        .cell.ho .cnum { color:#f59e0b; }
-        .camt { font-size:9px;font-weight:600;color:#34d399;margin-top:1px;font-family:"SF Mono","Consolas",monospace; }
-        .camt.z { color:#27272a; }
-        .summary { margin-top:20px;padding:16px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);
-            border-radius:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px; }
-        .sitem { text-align:center; }
-        .sval { font-size:20px;font-weight:700;font-variant-numeric:tabular-nums; }
-        .sval.p { color:#34d399; }
-        .slbl { font-size:10px;color:var(--muted);margin-top:2px; }
-        .legend { display:flex;gap:14px;justify-content:center;margin-top:10px; }
-        .leg { display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted); }
-        .ldot { width:6px;height:6px;border-radius:2px; }
-        .ldot.w { background:#34d399; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>收入日历 · 时薪桌面钟</title>
+<style>
+* { margin:0;padding:0;box-sizing:border-box; }
+canvas { position:fixed;inset:0;z-index:0;pointer-events:none;display:block; }
+body {
+  background:#08080c;color:#ededef;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+main { position:relative;z-index:1;width:380px;padding:2rem 1.5rem;text-align:center; }
+
+.top { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
+.top span { font-size:12px;color:#6b6b75;letter-spacing:1px; }
+.top .btns { display:flex;gap:4px; }
+.top .btns a {
+  width:30px;height:30px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
+  background:transparent;color:#6b6b75;cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;text-decoration:none;transition:0.2s;
+}
+.top .btns a:hover { border-color:rgba(255,255,255,0.2);color:#a1a1aa; }
+
+.mnav { display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px; }
+.mnav button {
+  width:28px;height:28px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
+  background:transparent;color:#6b6b75;cursor:pointer;font-size:13px;transition:0.2s;
+}
+.mnav button:hover { border-color:rgba(255,255,255,0.2);color:#a1a1aa; }
+.mnav .ml { font-family:'Courier New',monospace;font-size:14px;color:#fff;letter-spacing:1px;min-width:120px; }
+
+.wrow { display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:2px; }
+.wrow span { font-size:9px;color:#6b6b75;padding:3px 0; }
+.grid { display:grid;grid-template-columns:repeat(7,1fr);gap:2px; }
+.cell {
+  aspect-ratio:1;border-radius:4px;padding:2px;text-align:center;
+  border:1px solid transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:11px;
+}
+.cell.today { border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.04); }
+.cell.has { border-color:rgba(52,211,153,0.06); }
+.cell .cn { font-size:11px; }
+.cell.we .cn { color:#a78bfa; }
+.cell.ho .cn { color:#f59e0b; }
+.cell .ca { font-size:8px;color:#34d399;margin-top:1px;font-family:'Courier New',monospace;font-weight:600; }
+.cell .ca.z { color:#1e1e24; }
+
+.summary { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;padding:14px;
+  border:1px solid rgba(255,255,255,0.04);border-radius:6px; }
+.summary .sv { font-size:18px;font-weight:600;font-family:'Courier New',monospace; }
+.summary .sv.p { color:#34d399; }
+.summary .sl { font-size:9px;color:#6b6b75;margin-top:2px;letter-spacing:1px;text-transform:uppercase; }
+</style>
 </head>
 <body>
-<div class="cal-wrap">
-    <div class="topbar">
-        <span class="brand">📅 收入日历</span>
-        <div style="display:flex;gap:4px;">
-            <button class="btn" onclick="location.href='clock.html'" title="返回时钟">←</button>
-            <button class="btn" onclick="location.href='setup.html'" title="设置">⚙</button>
-        </div>
+<canvas id="bg"></canvas>
+<main>
+  <div class="top">
+    <span>EARNINGS</span>
+    <div class="btns">
+      <a href="clock.html">&#8592;</a>
+      <a href="setup.html">&#9881;</a>
     </div>
-    <div class="month-nav">
-        <button onclick="prev()">◀</button><span class="mlabel" id="mlabel">2026年 6月</span><button onclick="next()">▶</button>
-    </div>
-    <div class="wrow"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span class="we">六</span><span class="we">日</span></div>
-    <div class="grid" id="grid"></div>
-    <div class="legend"><div class="leg"><div class="ldot w"></div>有收入</div></div>
-    <div class="summary">
-        <div class="sitem"><div class="sval p" id="sMonth">¥0.00</div><div class="slbl">本月收入</div></div>
-        <div class="sitem"><div class="sval" id="sTotal" style="color:var(--text);">¥0.00</div><div class="slbl">历史总计</div></div>
-    </div>
-</div>
+  </div>
+
+  <div class="mnav">
+    <button onclick="prev()">&#9664;</button>
+    <span class="ml" id="ml">2026 June</span>
+    <button onclick="next()">&#9654;</button>
+  </div>
+
+  <div class="wrow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="summary">
+    <div><div class="sv p" id="sMonth">0</div><div class="sl">this month</div></div>
+    <div><div class="sv" id="sTotal" style="color:#ededef;">0</div><div class="sl">all time</div></div>
+  </div>
+</main>
 <script>
-// Auth
-const CU = sessionStorage.getItem('wageClock_currentUser');
-if (!CU) { window.location.href = 'login.html'; }
-function uk(k) { return 'wageClock_' + CU + '_' + k; }
-function ld(k,d) { try { const v=localStorage.getItem(uk(k)); return v?JSON.parse(v):d; } catch(e) { return d; } }
+var CU=sessionStorage.getItem('wageClock_currentUser');
+if(!CU) location.href='login.html';
+function uk(k){return'wageClock_'+CU+'_'+k;}
+function ld(k,d){try{var v=localStorage.getItem(uk(k));return v?JSON.parse(v):d;}catch(e){return d;}}
 
-const earnings = ld('earnings', {});
-const settings = ld('settings', { workDaysOfWeek:[true,true,true,true,true,false,false] });
-const holidayDB = { '2026-01-01':'元旦','2026-04-05':'清明节','2026-05-01':'劳动节','2026-05-31':'端午节','2026-09-25':'中秋节','2026-10-01':'国庆节' };
-const makeupWorkdays = ['2026-02-14','2026-04-26','2026-05-09','2026-09-20','2026-09-27','2026-10-10'];
-let cy = new Date().getFullYear(), cm = new Date().getMonth();
+var earnings=ld('earnings',{});
+var S=ld('settings',{workDaysOfWeek:[true,true,true,true,true,false,false]});
+var HD={'2026-01-01':1,'2026-04-05':1,'2026-05-01':1,'2026-05-31':1,'2026-09-25':1,'2026-10-01':1};
+var cy=new Date().getFullYear(),cm=new Date().getMonth();
+var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-function render() {
-    document.getElementById('mlabel').textContent = cy+'年 '+(cm+1)+'月';
-    const grid = document.getElementById('grid'); grid.innerHTML = '';
-    const dim = new Date(cy,cm+1,0).getDate();
-    const fd = new Date(cy,cm,1), so = fd.getDay()===0?6:fd.getDay()-1;
-    const today = new Date(), ts = today.toISOString().slice(0,10);
-    let mTotal=0, aTotal=0;
-    for (const [ds,amt] of Object.entries(earnings)) {
-        aTotal+=amt; const d=new Date(ds); if(d.getFullYear()===cy&&d.getMonth()===cm) mTotal+=amt;
-    }
-    document.getElementById('sMonth').textContent='¥'+mTotal.toFixed(2);
-    document.getElementById('sTotal').textContent='¥'+aTotal.toFixed(2);
-    for (let i=0;i<so;i++) { const c=document.createElement('div'); c.className='cell'; grid.appendChild(c); }
-    for (let d=1;d<=dim;d++) {
-        const date=new Date(cy,cm,d), ds=date.toISOString().slice(0,10), dow=date.getDay();
-        const idx=dow===0?6:dow-1; const wd=settings.workDaysOfWeek||[true,true,true,true,true,false,false];
-        const cell=document.createElement('div'); cell.className='cell';
-        if(ds===ts) cell.classList.add('today');
-        if(earnings[ds]) cell.classList.add('has');
-        if(holidayDB[ds]&&!makeupWorkdays.includes(ds)) cell.classList.add('ho');
-        else if(!wd[idx]&&!makeupWorkdays.includes(ds)) cell.classList.add('we');
-        const num=document.createElement('div'); num.className='cnum';
-        num.textContent=holidayDB[ds]&&!makeupWorkdays.includes(ds)?d+' 🎌':(makeupWorkdays.includes(ds)?d+' 🔧':d);
-        cell.appendChild(num);
-        const amt=document.createElement('div'); amt.className='camt';
-        if(earnings[ds]) amt.textContent='¥'+earnings[ds].toFixed(0);
-        else if(date<=today&&wd[idx]&&!(holidayDB[ds]&&!makeupWorkdays.includes(ds))) { amt.className='camt z';amt.textContent='—'; }
-        cell.appendChild(amt); grid.appendChild(cell);
-    }
+// Collect all earnings (from multiple keys)
+var allEarnings={};
+for(var i=0;i<localStorage.length;i++){
+  var key=localStorage.key(i);
+  if(key.indexOf(uk('earnings_'))===0){
+    var ds=key.replace(uk('earnings_'),'');
+    allEarnings[ds]=parseFloat(localStorage.getItem(key))||0;
+  }
+}
+
+function render(){
+  document.getElementById('ml').textContent=cy+' '+months[cm];
+  var grid=document.getElementById('grid');grid.innerHTML='';
+  var dim=new Date(cy,cm+1,0).getDate();
+  var fd=new Date(cy,cm,1),so=fd.getDay()===0?6:fd.getDay()-1;
+  var today=new Date().toISOString().slice(0,10);
+  var mTotal=0,aTotal=0;
+
+  for(var ds in allEarnings){
+    aTotal+=allEarnings[ds];
+    var d=new Date(ds);
+    if(d.getFullYear()===cy&&d.getMonth()===cm)mTotal+=allEarnings[ds];
+  }
+  document.getElementById('sMonth').textContent='¥'+mTotal.toFixed(0);
+  document.getElementById('sTotal').textContent='¥'+aTotal.toFixed(0);
+
+  for(var i=0;i<so;i++){var c=document.createElement('div');c.className='cell';grid.appendChild(c);}
+  for(var d=1;d<=dim;d++){
+    var date=new Date(cy,cm,d),ds=date.toISOString().slice(0,10),dow=date.getDay();
+    var idx=dow===0?6:dow-1,wd=S.workDaysOfWeek||[true,true,true,true,true,false,false];
+    var cell=document.createElement('div');cell.className='cell';
+    if(ds===today)cell.classList.add('today');
+    if(allEarnings[ds])cell.classList.add('has');
+    if(HD[ds])cell.classList.add('ho');else if(!wd[idx])cell.classList.add('we');
+    var cn=document.createElement('div');cn.className='cn';
+    cn.textContent=HD[ds]?d+' *':d;cell.appendChild(cn);
+    var ca=document.createElement('div');ca.className='ca';
+    if(allEarnings[ds])ca.textContent='¥'+allEarnings[ds].toFixed(0);
+    else if(date<=new Date()&&wd[idx]&&!HD[ds]){ca.className='ca z';ca.textContent='-';}
+    cell.appendChild(ca);grid.appendChild(cell);
+  }
 }
 function prev(){cm--;if(cm<0){cm=11;cy--;}render();}
 function next(){cm++;if(cm>11){cm=0;cy++;}render();}
 render();
+
+// DotGrid
+(function(){
+  var cv=document.getElementById('bg'),ctx=cv.getContext('2d');
+  var DS=3,G=28,P=120,RS=0.08,FR=0.88,W=0,H=0,dots=[];
+  var pt={x:-999,y:-999,px:0,py:0,vx:0,vy:0};
+  function build(){
+    var r=cv.parentNode.getBoundingClientRect();W=r.width;H=r.height;
+    var dpr=devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;
+    cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+    var cell=DS+G,cols=Math.floor(W/cell),rows=Math.floor(H/cell);
+    var gW=cell*cols,gH=cell*rows,ox=(W-gW)/2+DS/2,oy=(H-gH)/2+DS/2;
+    dots=[];for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)dots.push({cx:ox+c*cell,cy:oy+r*cell,x:0,y:0,vx:0,vy:0});
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);var psq=P*P;
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],ox=d.cx+d.x,oy=d.cy+d.y,dx=d.cx-pt.x,dy=d.cy-pt.y,dsq=dx*dx+dy*dy;
+      var a=0.1;if(dsq<psq){var t=1-Math.sqrt(dsq)/P;a=0.1+t*0.45;}
+      ctx.beginPath();ctx.arc(ox,oy,DS/2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';ctx.fill();
+    }
+  }
+  function upd(){
+    pt.vx+=(pt.x-pt.px-pt.vx)*0.3;pt.vy+=(pt.y-pt.py-pt.vy)*0.3;pt.px=pt.x;pt.py=pt.y;
+    var spd=Math.hypot(pt.vx,pt.vy);
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],dx=d.cx-pt.x,dy=d.cy-pt.y,dist=Math.hypot(dx,dy);
+      if(dist<P&&spd>5){var f=(1-dist/P)*spd*0.015;d.vx+=(dx/dist)*f;d.vy+=(dy/dist)*f;}
+      d.vx+=(0-d.x)*RS;d.vy+=(0-d.y)*RS;d.vx*=FR;d.vy*=FR;d.x+=d.vx;d.y+=d.vy;
+    }
+  }
+  function tick(){upd();draw();requestAnimationFrame(tick);}
+  function mv(e){var r=cv.getBoundingClientRect();pt.x=e.clientX-r.left;pt.y=e.clientY-r.top;}
+  function cl(e){var r=cv.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+    for(var i=0;i<dots.length;i++){var d=dots[i],dist=Math.hypot(d.cx-cx,d.cy-cy);
+    if(dist<200){var f=(1-dist/200)*12;d.vx+=(d.cx-cx)/dist*f;d.vy+=(d.cy-cy)/dist*f;}}}
+  setTimeout(function(){build();requestAnimationFrame(tick);},100);
+  window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
+})();
 </script>
 </body>
 </html>

@@ -1,464 +1,328 @@
-<!--
-📐 交互原型 - 非正式产品
-时薪桌面钟 · 设置向导（3步）
--->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>设置向导 · 时薪桌面钟</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .step-dot { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .slide-in { animation: slideIn 0.35s ease-out; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(24px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-        input[type=range] { accent-color: #6366f1; }
-        input[type=time]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        .day-btn.work-day { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399; }
-        .day-btn.rest-day { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06); color: #475569; }
-        .schedule-btn.active-schedule { background: rgba(99,102,241,0.2) !important; border-color: rgba(99,102,241,0.5) !important; color: #a5b4fc !important; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设置 · 时薪桌面钟</title>
+<style>
+* { margin:0;padding:0;box-sizing:border-box; }
+canvas { position:fixed;inset:0;z-index:0;pointer-events:none;display:block; }
+body {
+  background:#08080c;color:#ededef;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+main { position:relative;z-index:1;width:380px;padding:2rem 1.5rem;text-align:center; }
+h1 { font-family:'Courier New',monospace;font-size:18px;color:#fff;letter-spacing:2px;margin-bottom:4px; }
+.sub { font-size:11px;color:#6b6b75;margin-bottom:24px;letter-spacing:1px; }
+
+/* Steps */
+.steps { display:flex;gap:2px;justify-content:center;margin-bottom:24px; }
+.steps .dot { width:8px;height:8px;border-radius:50%;background:#1e1e24;transition:0.3s; }
+.steps .dot.on { background:#f59e0b; }
+.steps .line { width:20px;height:1px;background:#1e1e24;align-self:center;transition:0.3s; }
+.steps .line.on { background:#f59e0b; }
+
+/* Step content */
+.step { display:none;animation:fadeIn 0.3s ease; }
+.step.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
+
+.step h2 { font-size:14px;font-weight:500;margin-bottom:16px; }
+.step h2 .icon { font-size:28px;display:block;margin-bottom:8px; }
+
+/* Inputs */
+input[type=number],input[type=time] {
+  width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px;color:#fff;font-size:24px;text-align:center;font-family:'Courier New',monospace;
+  outline:none;transition:0.2s;
+}
+input:focus { border-color:rgba(255,255,255,0.35); }
+input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
+
+/* Quick selects */
+.qs { display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:10px 0; }
+.qs button {
+  padding:5px 12px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
+  background:transparent;color:#6b6b75;font-size:11px;cursor:pointer;font-family:inherit;transition:0.2s;
+}
+.qs button:hover { border-color:rgba(255,255,255,0.2);color:#a1a1aa; }
+.qs button.sel { border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.06);color:#f59e0b; }
+
+/* Day toggles */
+.days { display:flex;gap:3px;justify-content:center;margin:10px 0; }
+.days button {
+  width:36px;height:36px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);
+  background:transparent;color:#6b6b75;font-size:11px;cursor:pointer;font-family:inherit;transition:0.2s;
+}
+.days button.work { background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.25);color:#34d399; }
+
+/* OT section */
+.ot-sect { margin-top:16px;padding:14px;border:1px solid rgba(255,255,255,0.04);border-radius:6px;text-align:left; }
+.ot-sect h3 { font-size:10px;color:#6b6b75;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center; }
+.ot-modes { display:flex;gap:3px;justify-content:center;margin-bottom:8px; }
+.ot-modes button {
+  padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
+  background:transparent;color:#6b6b75;font-size:10px;cursor:pointer;font-family:inherit;transition:0.2s;
+}
+.ot-modes button.sel { border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171; }
+.ot-custom { display:none;margin-top:6px; }
+.ot-custom input { font-size:16px;padding:8px;width:100px;text-align:center; }
+.ot-custom .unit { display:inline-flex;gap:2px; }
+.ot-custom .unit button { font-size:10px;padding:4px 8px; }
+
+/* Buttons */
+.btns { display:flex;gap:8px;margin-top:20px; }
+.btn {
+  flex:1;padding:10px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;
+  font-family:inherit;transition:0.2s;letter-spacing:1px;
+}
+.btn.primary { background:transparent;border:1px solid rgba(255,255,255,0.2);color:#d4d4d8; }
+.btn.primary:hover { background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.4);color:#fff; }
+.btn.secondary { background:transparent;border:1px solid rgba(255,255,255,0.06);color:#6b6b75; }
+.btn.secondary:hover { border-color:rgba(255,255,255,0.15);color:#a1a1aa; }
+.btn.done { background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.25);color:#34d399; }
+.btn.done:hover { background:rgba(52,211,153,0.16); }
+
+.err { font-size:10px;color:#ef4444;min-height:16px;margin-top:6px;text-align:center; }
+.preview { margin-top:12px;font-size:10px;color:#6b6b75; }
+.preview span { color:#a1a1aa; }
+</style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full p-6">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <div class="text-3xl mb-2">⏳</div>
-            <h1 class="text-xl font-bold">时薪桌面钟</h1>
-            <p class="text-slate-400 text-sm mt-1">快速设置，开始感知时间的价值</p>
-        </div>
+<body>
+<canvas id="bg"></canvas>
+<main>
+  <h1>SETTINGS</h1>
+  <p class="sub">configure your wage clock</p>
 
-        <!-- Step Indicator -->
-        <div class="flex items-center justify-center gap-2 mb-8">
-            <div id="dot1" class="step-dot w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-400/50"></div>
-            <div class="w-8 h-0.5 bg-slate-700 transition-colors duration-400" id="line1"></div>
-            <div id="dot2" class="step-dot w-3 h-3 rounded-full bg-slate-700"></div>
-            <div class="w-8 h-0.5 bg-slate-700 transition-colors duration-400" id="line2"></div>
-            <div id="dot3" class="step-dot w-3 h-3 rounded-full bg-slate-700"></div>
-        </div>
-        <p class="text-center text-xs text-slate-500 mb-6" id="stepLabel">步骤 1/3</p>
+  <div class="steps">
+    <div class="dot on" id="d1"></div><div class="line" id="l1"></div>
+    <div class="dot" id="d2"></div><div class="line" id="l2"></div>
+    <div class="dot" id="d3"></div>
+  </div>
 
-        <!-- Step 1: Monthly Salary -->
-        <div id="step1" class="slide-in">
-            <div class="text-center mb-6">
-                <div class="text-4xl mb-3">💰</div>
-                <h2 class="text-lg font-semibold mb-1">你的月薪是多少？</h2>
-                <p class="text-slate-400 text-sm">税前税后都可以，这是给你自己看的</p>
-            </div>
-            <div class="relative mb-6">
-                <input type="number" id="salary" value="15000"
-                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-center text-3xl font-bold text-white focus:outline-none focus:border-indigo-500 transition"
-                    placeholder="输入月薪">
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">元</span>
-            </div>
-            <!-- Quick Select -->
-            <div class="flex gap-2 justify-center flex-wrap">
-                <button onclick="setSalary(5000)" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">5k</button>
-                <button onclick="setSalary(8000)" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">8k</button>
-                <button onclick="setSalary(15000)" class="px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded-lg text-sm text-indigo-300 transition">15k</button>
-                <button onclick="setSalary(25000)" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">25k</button>
-                <button onclick="setSalary(40000)" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">40k</button>
-            </div>
-            <button onclick="nextStep(1)" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition">
-                下一步 →
-            </button>
-        </div>
+  <!-- Step 1: Salary -->
+  <div class="step active" id="s1">
+    <h2><span class="icon">&#128176;</span>Monthly Salary</h2>
+    <input type="number" id="salary" value="15000" min="0" step="100">
+    <div class="qs">
+      <button onclick="setSal(5000)">5k</button><button onclick="setSal(8000)">8k</button>
+      <button onclick="setSal(15000)" class="sel">15k</button><button onclick="setSal(25000)">25k</button><button onclick="setSal(40000)">40k</button>
+    </div>
+    <div class="btns"><button class="btn primary" onclick="next(1)">Next →</button></div>
+  </div>
 
-        <!-- Step 2: Working Days + Rest Days -->
-        <div id="step2" class="hidden">
-            <div class="text-center mb-6">
-                <div class="text-4xl mb-3">📅</div>
-                <h2 class="text-lg font-semibold mb-1">工作制和休息日</h2>
-                <p class="text-slate-400 text-sm">选择你的工作制，自动匹配每月工作天数</p>
-            </div>
+  <!-- Step 2: Schedule -->
+  <div class="step" id="s2">
+    <h2><span class="icon">&#128197;</span>Work Schedule</h2>
+    <div class="qs" style="margin-bottom:12px">
+      <button id="scDual" class="sel" onclick="setSched('dual')">5-day (dual rest)</button>
+      <button id="scAlt" onclick="setSched('alternating')">5.5-day (alternating)</button>
+      <button id="scSingle" onclick="setSched('single')">6-day (single rest)</button>
+    </div>
+    <p style="font-size:10px;color:#6b6b75;margin-bottom:4px;">tap to toggle rest days</p>
+    <div class="days" id="dayToggles">
+      <button onclick="tog(0)" data-d="0" class="work">Mon</button>
+      <button onclick="tog(1)" data-d="1" class="work">Tue</button>
+      <button onclick="tog(2)" data-d="2" class="work">Wed</button>
+      <button onclick="tog(3)" data-d="3" class="work">Thu</button>
+      <button onclick="tog(4)" data-d="4" class="work">Fri</button>
+      <button onclick="tog(5)" data-d="5">Sat</button>
+      <button onclick="tog(6)" data-d="6">Sun</button>
+    </div>
+    <div id="altExtra" style="display:none;margin:8px 0;font-size:10px;color:#6b6b75;">
+      This Saturday: <button id="satWork" onclick="setSat(true)" class="sel" style="font-size:10px;padding:3px 8px;">work</button>
+      <button id="satRest" onclick="setSat(false)" style="font-size:10px;padding:3px 8px;">rest</button>
+    </div>
+    <p style="font-size:11px;color:#6b6b75;margin-top:6px;">≈ <span id="wdCount" style="color:#fff;">22</span> days/month</p>
+    <div class="btns">
+      <button class="btn secondary" onclick="prev(2)">← Back</button>
+      <button class="btn primary" onclick="next(2)">Next →</button>
+    </div>
+  </div>
 
-            <!-- Work schedule quick select -->
-            <div class="flex gap-2 justify-center mb-5">
-                <button id="btnDual" onclick="setSchedule('dual')" class="schedule-btn px-4 py-2 bg-indigo-500/20 border border-indigo-500/40 rounded-lg text-sm text-indigo-300 transition">双休</button>
-                <button id="btnAlternating" onclick="setSchedule('alternating')" class="schedule-btn px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">大小周</button>
-                <button id="btnSingle" onclick="setSchedule('single')" class="schedule-btn px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">单休</button>
-            </div>
-
-            <!-- Day-of-week toggles -->
-            <p class="text-xs text-slate-500 text-center mb-2">点击切换：<span class="text-emerald-400">工作日</span> / <span class="text-slate-600">休息日</span></p>
-            <div class="flex gap-1.5 justify-center mb-4" id="weekdayToggles">
-                <button onclick="toggleDay(0)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="0">一</button>
-                <button onclick="toggleDay(1)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="1">二</button>
-                <button onclick="toggleDay(2)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="2">三</button>
-                <button onclick="toggleDay(3)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="3">四</button>
-                <button onclick="toggleDay(4)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="4">五</button>
-                <button onclick="toggleDay(5)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="5">六</button>
-                <button onclick="toggleDay(6)" class="day-btn w-10 h-10 rounded-lg text-xs font-semibold border transition" data-day="6">日</button>
-            </div>
-
-            <!-- 大小周额外设置 -->
-            <div id="alternatingExtra" class="hidden mb-4 p-3 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center">
-                <p class="text-xs text-slate-400 mb-2">大小周：本周六是工作日吗？</p>
-                <div class="flex gap-2 justify-center">
-                    <button id="btnSatWork" onclick="setSatWork(true)" class="px-4 py-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded-lg text-sm text-indigo-300 transition">是，本周六上班</button>
-                    <button id="btnSatRest" onclick="setSatWork(false)" class="px-4 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">不，本周六休息</button>
-                </div>
-                <p class="text-xs text-slate-500 mt-2">大小周自动交替，只需确认本周状态</p>
-            </div>
-
-            <!-- Working days display (auto-calculated) -->
-            <div class="relative mb-3">
-                <label class="block text-xs text-slate-500 text-center mb-1">每月约工作</label>
-                <input type="number" id="workDays" value="22" min="1" max="31"
-                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-3xl font-bold text-white focus:outline-none focus:border-indigo-500 transition"
-                    placeholder="输入天数" readonly>
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg mt-2">天/月</span>
-            </div>
-            <p class="text-xs text-slate-500 text-center mb-0" id="workDaysHint">双休制：5天/周 × 4.33周 ≈ 22天</p>
-
-            <div class="flex gap-3 mt-6">
-                <button onclick="prevStep(2)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl transition">
-                    ← 上一步
-                </button>
-                <button onclick="nextStep(2)" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition">
-                    下一步 →
-                </button>
-            </div>
-        </div>
-
-        <!-- Step 3: Work Time Range -->
-        <div id="step3" class="hidden">
-            <div class="text-center mb-6">
-                <div class="text-4xl mb-3">🕐</div>
-                <h2 class="text-lg font-semibold mb-1">每天几点到几点上班？</h2>
-                <p class="text-slate-400 text-sm">午休时间暂时算在工作时间内</p>
-            </div>
-            <div class="flex items-center gap-4 mb-6">
-                <div class="flex-1">
-                    <label class="block text-xs text-slate-400 mb-2 text-center">上班时间</label>
-                    <input type="time" id="startTime" value="09:00"
-                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-center text-xl font-bold text-white focus:outline-none focus:border-emerald-500 transition">
-                </div>
-                <div class="text-slate-500 text-xl pt-5">→</div>
-                <div class="flex-1">
-                    <label class="block text-xs text-slate-400 mb-2 text-center">下班时间</label>
-                    <input type="time" id="endTime" value="18:00"
-                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-center text-xl font-bold text-white focus:outline-none focus:border-amber-500 transition">
-                </div>
-            </div>
-            <!-- Preview -->
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 text-center">
-                <p class="text-xs text-slate-500 mb-1">预览</p>
-                <p class="text-slate-300 text-sm">
-                    每日 <span id="previewHours" class="text-white font-semibold">9</span> 小时 ·
-                    每日薪资 <span id="previewDaily" class="text-white font-semibold">681.82</span> 元 ·
-                    每秒 <span id="previewPerSec" class="text-emerald-400 font-semibold">0.0237</span> 元
-                </p>
-            </div>
-            <!-- Overtime rate -->
-            <div class="mt-5 p-4 bg-slate-800/30 border border-slate-700/40 rounded-xl">
-                <label class="block text-xs text-slate-400 text-center mb-3">🔥 加班计费方式</label>
-                <!-- OT mode selector -->
-                <div class="flex gap-1 justify-center mb-3">
-                    <button onclick="setOTMode('rate')" id="otModeRate" class="ot-mode-btn px-3 py-1.5 bg-red-500/15 border border-red-500/30 rounded-lg text-xs text-red-300 transition active-sub">按倍率</button>
-                    <button onclick="setOTMode('persecond')" id="otModePerSec" class="ot-mode-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">按秒薪</button>
-                    <button onclick="setOTMode('custom')" id="otModeCustom" class="ot-mode-btn px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">自定义</button>
-                </div>
-                <!-- Multiplier sub-options -->
-                <div id="otMultiplierRow" class="flex gap-2 justify-center mb-2">
-                    <button onclick="setOTMultiplier(1.0)" id="otMul1" class="ot-mul-btn px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×1.0</button>
-                    <button onclick="setOTMultiplier(1.5)" id="otMul15" class="ot-mul-btn px-3 py-1 bg-red-500/15 border border-red-500/30 rounded-lg text-sm text-red-300 transition active-sub">×1.5</button>
-                    <button onclick="setOTMultiplier(2.0)" id="otMul2" class="ot-mul-btn px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×2.0</button>
-                    <button onclick="setOTMultiplier(3.0)" id="otMul3" class="ot-mul-btn px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:border-slate-500 transition">×3.0</button>
-                </div>
-                <!-- Custom amount sub-options -->
-                <div id="otCustomRow" class="hidden">
-                    <div class="flex items-center gap-2 justify-center mb-2">
-                        <input type="number" id="otCustomAmount" value="50" min="0" step="0.01"
-                            class="w-24 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-center text-white text-sm focus:outline-none focus:border-red-500 transition">
-                        <span class="text-slate-400 text-xs">元</span>
-                        <button onclick="toggleOTCustomUnit()" id="otCustomUnitBtn"
-                            class="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-slate-500 transition">
-                            /时
-                        </button>
-                    </div>
-                    <p class="text-xs text-slate-500 text-center" id="otCustomHint">加班时薪 50.00 元（≈0.0139 元/秒）</p>
-                </div>
-                <!-- Formula placeholder (future) -->
-                <p class="text-xs text-slate-600 text-center mt-2">💡 后续可添加自定义计算公式（如：基本×1.5+餐补）</p>
-            </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="prevStep(3)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 rounded-xl transition">
-                    ← 上一步
-                </button>
-                <button onclick="finishSetup()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition">
-                    ✅ 完成设置
-                </button>
-            </div>
-        </div>
-
-        <!-- Validation Error Toast -->
-        <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500/90 text-white px-4 py-2 rounded-lg text-sm hidden transition-all">
-            <span id="toastMsg"></span>
-        </div>
+  <!-- Step 3: Hours + OT -->
+  <div class="step" id="s3">
+    <h2><span class="icon">&#128338;</span>Work Hours</h2>
+    <div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:16px;">
+      <div><label style="font-size:9px;color:#6b6b75;display:block;margin-bottom:4px;">Start</label><input type="time" id="startTime" value="09:00" style="font-size:18px;width:120px;"></div>
+      <span style="color:#6b6b75;">→</span>
+      <div><label style="font-size:9px;color:#6b6b75;display:block;margin-bottom:4px;">End</label><input type="time" id="endTime" value="18:00" style="font-size:18px;width:120px;"></div>
     </div>
 
-    <script>
-        // ============ AUTH CHECK ============
-        const CURRENT_USER = sessionStorage.getItem('wageClock_currentUser');
-        if (!CURRENT_USER) { window.location.href = 'login.html'; }
-        function userKey(k) { return 'wageClock_' + CURRENT_USER + '_' + k; }
-        function loadUserData(k, def) { try { const v = localStorage.getItem(userKey(k)); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
-        function saveUserData(k, val) { localStorage.setItem(userKey(k), JSON.stringify(val)); }
+    <div class="ot-sect">
+      <h3>Overtime Rate</h3>
+      <div class="ot-modes">
+        <button id="otModeMult" class="sel" onclick="setOTMode('rate')">Multiplier</button>
+        <button id="otModeRate" onclick="setOTMode('persecond')">Base Rate</button>
+        <button id="otModeCustom" onclick="setOTMode('custom')">Custom</button>
+      </div>
+      <div id="otMultRow" style="text-align:center;margin-top:6px;">
+        <button onclick="setOTMult(1.0)" style="font-size:10px;padding:3px 8px;">1x</button>
+        <button onclick="setOTMult(1.5)" class="sel" style="font-size:10px;padding:3px 8px;">1.5x</button>
+        <button onclick="setOTMult(2.0)" style="font-size:10px;padding:3px 8px;">2x</button>
+        <button onclick="setOTMult(3.0)" style="font-size:10px;padding:3px 8px;">3x</button>
+      </div>
+      <div class="ot-custom" id="otCustomRow">
+        <div style="display:flex;gap:6px;justify-content:center;align-items:center;">
+          <input type="number" id="otAmt" value="50" min="0" step="0.01" style="width:80px;">
+          <span style="font-size:10px;color:#6b6b75;">¥ /</span>
+          <button onclick="togOTUnit()" id="otUnitBtn" style="font-size:10px;padding:4px 8px;">hr</button>
+        </div>
+      </div>
+    </div>
 
-        let currentStep = 1;
-        // 0=Mon, 1=Tue, ..., 6=Sun. true = work day
-        let workDaysOfWeek = [true, true, true, true, true, false, false]; // default: 双休
-        let scheduleType = 'dual'; // 'dual' | 'alternating' | 'single'
-        let satWorkThisWeek = false; // for 大小周
-        let overtimeSettings = {
-            mode: 'rate',        // 'rate' | 'persecond' | 'custom'
-            multiplier: 1.5,
-            customAmount: 50,
-            customUnit: 'hour' // 'hour' | 'second' | 'once'
-        };
+    <div class="preview" id="preview"></div>
 
-        // Load existing settings if any
-        (function() {
-            const existing = loadUserData('settings', null);
-            if (existing) {
-                document.getElementById('salary').value = existing.monthlySalary || 15000;
-                document.getElementById('startTime').value = existing.workStart || '09:00';
-                document.getElementById('endTime').value = existing.workEnd || '18:00';
-                if (existing.workDaysOfWeek) workDaysOfWeek = existing.workDaysOfWeek;
-                if (existing.scheduleType) { scheduleType = existing.scheduleType; setSchedule(scheduleType); }
-                if (existing.satWorkThisWeek !== undefined) satWorkThisWeek = existing.satWorkThisWeek;
-                if (existing.overtimeSettings) { overtimeSettings = existing.overtimeSettings; setOTMode(overtimeSettings.mode); }
-                updateDayButtons();
-                updateWorkDaysFromSelection();
-            }
-        })();
+    <div class="btns">
+      <button class="btn secondary" onclick="prev(3)">← Back</button>
+      <button class="btn done" onclick="finish()">Save & Start →</button>
+    </div>
+  </div>
+  <div class="err" id="err"></div>
+</main>
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            t.classList.remove('hidden'); t.style.opacity = '1';
-            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hidden'), 200); }, 2000);
-        }
+<script>
+var CU=sessionStorage.getItem('wageClock_currentUser');
+if(!CU) location.href='login.html';
+function uk(k){return'wageClock_'+CU+'_'+k;}
 
-        function updateDots(step) {
-            const dots = [document.getElementById('dot1'), document.getElementById('dot2'), document.getElementById('dot3')];
-            const lines = [document.getElementById('line1'), document.getElementById('line2')];
-            dots.forEach((d, i) => {
-                if (i < step) d.className = 'step-dot w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-400/50';
-                else d.className = 'step-dot w-3 h-3 rounded-full bg-slate-700';
-            });
-            lines.forEach((l, i) => { l.className = `w-8 h-0.5 transition-colors duration-400 ${i < step - 1 ? 'bg-indigo-500' : 'bg-slate-700'}`; });
-            document.getElementById('stepLabel').textContent = `步骤 ${step}/3`;
-        }
+var step=1,wd=[true,true,true,true,true,false,false],sched='dual',satWork=false;
+var ot={mode:'rate',multiplier:1.5,customAmount:50,customUnit:'hour'};
 
-        // --- Day toggle ---
-        function toggleDay(day) {
-            workDaysOfWeek[day] = !workDaysOfWeek[day];
-            updateDayButtons();
-            updateWorkDaysFromSelection();
-        }
+function updDots(s){
+  for(var i=1;i<=3;i++)document.getElementById('d'+i).className='dot'+(i<=s?' on':'');
+  document.getElementById('l1').className='line'+(s>=2?' on':'');
+  document.getElementById('l2').className='line'+(s>=3?' on':'');
+}
+function showStep(s){
+  step=s;updDots(s);
+  for(var i=1;i<=3;i++)document.getElementById('s'+i).classList.toggle('active',i===s);
+}
 
-        function updateDayButtons() {
-            const btns = document.querySelectorAll('.day-btn');
-            btns.forEach((btn, i) => {
-                btn.classList.remove('work-day', 'rest-day');
-                btn.classList.add(workDaysOfWeek[i] ? 'work-day' : 'rest-day');
-            });
-        }
+function setSal(v){document.getElementById('salary').value=v;}
+function tog(d){wd[d]=!wd[d];updateDayBtns();updateWD();}
+function updateDayBtns(){
+  var btns=document.getElementById('dayToggles').children;
+  for(var i=0;i<btns.length;i++)btns[i].className=wd[i]?'work':'';
+}
+function updateWD(){
+  var c=wd.filter(Boolean).length,d=Math.round(c*4.33);
+  document.getElementById('wdCount').textContent=d;
+}
 
-        function updateWorkDaysFromSelection() {
-            const workCount = workDaysOfWeek.filter(Boolean).length;
-            const monthlyDays = Math.round(workCount * 4.33);
-            document.getElementById('workDays').value = monthlyDays;
-            const hint = `${workCount}天/周 × 4.33周 ≈ ${monthlyDays}天/月`;
-            document.getElementById('workDaysHint').textContent = hint;
-            updatePreview();
-        }
+function setSched(t){
+  sched=t;
+  document.getElementById('scDual').className=t==='dual'?'sel':'';
+  document.getElementById('scAlt').className=t==='alternating'?'sel':'';
+  document.getElementById('scSingle').className=t==='single'?'sel':'';
+  document.getElementById('altExtra').style.display=t==='alternating'?'block':'none';
+  if(t==='dual')wd=[true,true,true,true,true,false,false];
+  else if(t==='single')wd=[true,true,true,true,true,true,false];
+  else wd=[true,true,true,true,true,satWork,false];
+  updateDayBtns();updateWD();
+}
+function setSat(w){satWork=w;wd[5]=w;updateDayBtns();updateWD();
+  document.getElementById('satWork').className=w?'sel':'';document.getElementById('satRest').className=w?'':'sel';}
 
-        // --- Schedule quick select ---
-        function setSchedule(type) {
-            scheduleType = type;
-            // Update schedule buttons
-            document.querySelectorAll('.schedule-btn').forEach(b => b.classList.remove('active-schedule'));
-            const btnMap = { dual:'btnDual', alternating:'btnAlternating', single:'btnSingle' };
-            document.getElementById(btnMap[type]).classList.add('active-schedule');
+function setOTMode(m){
+  ot.mode=m;
+  document.getElementById('otModeMult').className=m==='rate'?'sel':'';
+  document.getElementById('otModeRate').className=m==='persecond'?'sel':'';
+  document.getElementById('otModeCustom').className=m==='custom'?'sel':'';
+  document.getElementById('otMultRow').style.display=m==='rate'?'block':'none';
+  document.getElementById('otCustomRow').style.display=m==='custom'?'block':'none';
+}
+function setOTMult(m){ot.multiplier=m;}
+function togOTUnit(){
+  ot.customUnit=ot.customUnit==='hour'?'second':(ot.customUnit==='second'?'once':'hour');
+  document.getElementById('otUnitBtn').textContent=ot.customUnit==='hour'?'hr':(ot.customUnit==='second'?'sec':'once');
+}
 
-            const extra = document.getElementById('alternatingExtra');
+function next(f){
+  if(f===1){var v=parseFloat(document.getElementById('salary').value);if(!v||v<=0){e('enter valid salary');return;}}
+  if(f===2){if(!wd.some(Boolean)){e('select at least one work day');return;}}
+  showStep(f+1);if(f===2)updatePrev();
+}
+function prev(f){showStep(f-1);}
+function e(m){document.getElementById('err').textContent=m;setTimeout(function(){document.getElementById('err').textContent='';},2000);}
 
-            if (type === 'dual') {
-                workDaysOfWeek = [true, true, true, true, true, false, false];
-                extra.classList.add('hidden');
-            } else if (type === 'single') {
-                workDaysOfWeek = [true, true, true, true, true, true, false];
-                extra.classList.add('hidden');
-            } else if (type === 'alternating') {
-                workDaysOfWeek = [true, true, true, true, true, satWorkThisWeek, false];
-                extra.classList.remove('hidden');
-                updateSatButtons();
-            }
-            updateDayButtons();
-            updateWorkDaysFromSelection();
-        }
+function updatePrev(){
+  var sal=parseFloat(document.getElementById('salary').value)||0;
+  var days=Math.round(wd.filter(Boolean).length*4.33);
+  var s=document.getElementById('startTime').value,e=document.getElementById('endTime').value;
+  if(s&&e){
+    var sh=s.split(':').map(Number),eh=e.split(':').map(Number);
+    var hrs=eh[0]-sh[0]+(eh[1]-sh[1])/60;
+    if(hrs>0){
+      var daily=sal/days,perSec=daily/hrs/3600;
+      document.getElementById('preview').innerHTML='<span>'+daily.toFixed(2)+'</span> ¥/day · <span>'+perSec.toFixed(4)+'</span> ¥/sec';
+    }
+  }
+}
 
-        function setSatWork(work) {
-            satWorkThisWeek = work;
-            workDaysOfWeek[5] = work;
-            updateDayButtons();
-            updateWorkDaysFromSelection();
-            updateSatButtons();
-        }
+function finish(){
+  var s=document.getElementById('startTime').value,e=document.getElementById('endTime').value;
+  if(!s||!e){e('select work hours');return;}
+  var sh=s.split(':').map(Number),eh=e.split(':').map(Number);
+  if(eh[0]*60+eh[1]<=sh[0]*60+sh[1]){e('end must be after start');return;}
+  var sal=parseFloat(document.getElementById('salary').value);
+  var days=Math.round(wd.filter(Boolean).length*4.33);
+  var hrs=eh[0]-sh[0]+(eh[1]-sh[1])/60;
+  var settings={
+    monthlySalary:sal,workingDays:days,workStart:s,workEnd:e,
+    dailySalary:sal/days,workHours:hrs,perSecondRate:(sal/days)/hrs/3600,
+    workDaysOfWeek:wd,scheduleType:sched,satWorkThisWeek:satWork,
+    overtimeSettings:ot
+  };
+  localStorage.setItem(uk('settings'),JSON.stringify(settings));
+  location.href='clock.html';
+}
 
-        function updateSatButtons() {
-            const btnW = document.getElementById('btnSatWork');
-            const btnR = document.getElementById('btnSatRest');
-            btnW.classList.remove('active-schedule'); btnR.classList.remove('active-schedule');
-            if (satWorkThisWeek) btnW.classList.add('active-schedule');
-            else btnR.classList.add('active-schedule');
-        }
+document.getElementById('startTime').addEventListener('change',updatePrev);
+document.getElementById('endTime').addEventListener('change',updatePrev);
+document.getElementById('salary').addEventListener('input',updatePrev);
+updDots(1);
 
-        function setOTMode(mode) {
-            overtimeSettings.mode = mode;
-            document.querySelectorAll('.ot-mode-btn').forEach(b => b.classList.remove('active-sub'));
-            const modeMap = {rate:'otModeRate', persecond:'otModePerSec', custom:'otModeCustom'};
-            if (modeMap[mode]) document.getElementById(modeMap[mode]).classList.add('active-sub');
-
-            document.getElementById('otMultiplierRow').classList.toggle('hidden', mode !== 'rate');
-            document.getElementById('otCustomRow').classList.toggle('hidden', mode !== 'custom');
-
-            if (mode === 'persecond') {
-                overtimeSettings.multiplier = 1.0;
-            }
-            updateOTPreview();
-        }
-        function setOTMultiplier(mult) {
-            overtimeSettings.multiplier = mult;
-            document.querySelectorAll('.ot-mul-btn').forEach(b => b.classList.remove('active-sub'));
-            const mulMap = {1.0:'otMul1', 1.5:'otMul15', 2.0:'otMul2', 3.0:'otMul3'};
-            if (mulMap[mult]) document.getElementById(mulMap[mult]).classList.add('active-sub');
-        }
-        function toggleOTCustomUnit() {
-            const units = ['hour', 'second', 'once'];
-            const labels = ['/时', '/秒', '/次'];
-            const idx = units.indexOf(overtimeSettings.customUnit);
-            const next = (idx + 1) % units.length;
-            overtimeSettings.customUnit = units[next];
-            document.getElementById('otCustomUnitBtn').textContent = labels[next];
-            updateOTPreview();
-        }
-        function updateOTPreview() {
-            const hint = document.getElementById('otCustomHint');
-            const amt = parseFloat(document.getElementById('otCustomAmount').value) || 0;
-            if (overtimeSettings.customUnit === 'hour') {
-                hint.textContent = '加班时薪 ' + amt.toFixed(2) + ' 元（≈' + (amt/3600).toFixed(4) + ' 元/秒）';
-            } else if (overtimeSettings.customUnit === 'second') {
-                hint.textContent = '加班每秒 +' + amt.toFixed(2) + ' 元';
-            } else {
-                hint.textContent = '单次加班费用 ¥' + amt.toFixed(2);
-            }
-        }
-        // Bind custom amount input
-        document.addEventListener('DOMContentLoaded', function() {
-            const customAmt = document.getElementById('otCustomAmount');
-            if (customAmt) customAmt.addEventListener('input', function() {
-                overtimeSettings.customAmount = parseFloat(this.value) || 0;
-                updateOTPreview();
-            });
-        });
-
-        // --- Step 3 preview ---
-        function updatePreview() {
-            const salary = parseFloat(document.getElementById('salary').value) || 0;
-            const days = parseInt(document.getElementById('workDays').value) || 1;
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            if (start && end) {
-                const [sh, sm] = start.split(':').map(Number);
-                const [eh, em] = end.split(':').map(Number);
-                const hours = eh - sh + (em - sm) / 60;
-                if (hours > 0) {
-                    const daily = salary / days;
-                    const perSec = daily / hours / 3600;
-                    document.getElementById('previewHours').textContent = hours;
-                    document.getElementById('previewDaily').textContent = daily.toFixed(2);
-                    document.getElementById('previewPerSec').textContent = perSec.toFixed(4);
-                }
-            }
-        }
-
-        function setSalary(val) { document.getElementById('salary').value = val; updatePreview(); }
-
-        function nextStep(from) {
-            if (from === 1) {
-                const v = parseFloat(document.getElementById('salary').value);
-                if (!v || v <= 0) { showToast('请输入有效的月薪'); return; }
-                currentStep = 2;
-            } else if (from === 2) {
-                const v = parseInt(document.getElementById('workDays').value);
-                if (!v || v < 1 || v > 31) { showToast('请输入有效的工作天数'); return; }
-                if (!workDaysOfWeek.some(Boolean)) { showToast('请至少选择一天为工作日'); return; }
-                currentStep = 3;
-                updatePreview();
-            }
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step3').classList.add('hidden');
-            document.getElementById('step' + currentStep).classList.remove('hidden');
-            document.getElementById('step' + currentStep).classList.add('slide-in');
-            updateDots(currentStep);
-        }
-
-        function prevStep(from) {
-            currentStep = from - 1;
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step3').classList.add('hidden');
-            document.getElementById('step' + currentStep).classList.remove('hidden');
-            document.getElementById('step' + currentStep).classList.add('slide-in');
-            updateDots(currentStep);
-        }
-
-        function finishSetup() {
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            if (!start || !end) { showToast('请选择上下班时间'); return; }
-            const [sh, sm] = start.split(':').map(Number);
-            const [eh, em] = end.split(':').map(Number);
-            if (eh * 60 + em <= sh * 60 + sm) { showToast('下班时间必须晚于上班时间'); return; }
-
-            // Save settings to sessionStorage for clock.html to read
-            const salary = parseFloat(document.getElementById('salary').value);
-            const days = parseInt(document.getElementById('workDays').value);
-            const hours = eh - sh + (em - sm) / 60;
-            const settings = {
-                monthlySalary: salary,
-                workingDays: days,
-                workStart: start,
-                workEnd: end,
-                dailySalary: salary / days,
-                perSecondRate: (salary / days) / hours / 3600,
-                workHours: hours,
-                workDaysOfWeek: workDaysOfWeek,
-                scheduleType: scheduleType,
-                satWorkThisWeek: satWorkThisWeek,
-                overtimeSettings: overtimeSettings
-            };
-            sessionStorage.setItem('wageClockSettings', JSON.stringify(settings));
-            saveUserData('settings', settings);
-            window.location.href = 'clock.html';
-        }
-
-        // Init
-        document.getElementById('startTime').addEventListener('change', updatePreview);
-        document.getElementById('endTime').addEventListener('change', updatePreview);
-        document.getElementById('salary').addEventListener('input', updatePreview);
-        updateDots(1);
-        updateDayButtons();
-    </script>
+// DotGrid
+(function(){
+  var cv=document.getElementById('bg'),ctx=cv.getContext('2d');
+  var DS=3,G=28,P=120,RS=0.08,FR=0.88,W=0,H=0,dots=[];
+  var pt={x:-999,y:-999,px:0,py:0,vx:0,vy:0};
+  function build(){
+    var r=cv.parentNode.getBoundingClientRect();W=r.width;H=r.height;
+    var dpr=devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;
+    cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+    var cell=DS+G,cols=Math.floor(W/cell),rows=Math.floor(H/cell);
+    var gW=cell*cols,gH=cell*rows,ox=(W-gW)/2+DS/2,oy=(H-gH)/2+DS/2;
+    dots=[];for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)dots.push({cx:ox+c*cell,cy:oy+r*cell,x:0,y:0,vx:0,vy:0});
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);var psq=P*P;
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],ox=d.cx+d.x,oy=d.cy+d.y,dx=d.cx-pt.x,dy=d.cy-pt.y,dsq=dx*dx+dy*dy;
+      var a=0.1;if(dsq<psq){var t=1-Math.sqrt(dsq)/P;a=0.1+t*0.45;}
+      ctx.beginPath();ctx.arc(ox,oy,DS/2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';ctx.fill();
+    }
+  }
+  function upd(){
+    pt.vx+=(pt.x-pt.px-pt.vx)*0.3;pt.vy+=(pt.y-pt.py-pt.vy)*0.3;pt.px=pt.x;pt.py=pt.y;
+    var spd=Math.hypot(pt.vx,pt.vy);
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],dx=d.cx-pt.x,dy=d.cy-pt.y,dist=Math.hypot(dx,dy);
+      if(dist<P&&spd>5){var f=(1-dist/P)*spd*0.015;d.vx+=(dx/dist)*f;d.vy+=(dy/dist)*f;}
+      d.vx+=(0-d.x)*RS;d.vy+=(0-d.y)*RS;d.vx*=FR;d.vy*=FR;d.x+=d.vx;d.y+=d.vy;
+    }
+  }
+  function tick(){upd();draw();requestAnimationFrame(tick);}
+  function mv(e){var r=cv.getBoundingClientRect();pt.x=e.clientX-r.left;pt.y=e.clientY-r.top;}
+  function cl(e){var r=cv.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+    for(var i=0;i<dots.length;i++){var d=dots[i],dist=Math.hypot(d.cx-cx,d.cy-cy);
+    if(dist<200){var f=(1-dist/200)*12;d.vx+=(d.cx-cx)/dist*f;d.vy+=(d.cy-cy)/dist*f;}}}
+  setTimeout(function(){build();requestAnimationFrame(tick);},100);
+  window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
+})();
+</script>
 </body>
 </html>
