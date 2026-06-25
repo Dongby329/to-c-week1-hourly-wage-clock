@@ -37,9 +37,9 @@
         /* DotGrid */
         .dotgrid-bg {
             position: fixed; inset: 0; z-index: 0;
-            overflow: hidden;
+            overflow: hidden; pointer-events: none;
         }
-        .dotgrid-bg canvas { display: block; width: 100%; height: 100%; }
+        .dotgrid-bg canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
 
         /* Hero */
         .hero-container {
@@ -348,21 +348,7 @@ function initDotGrid() {
     requestAnimationFrame(tick);
 }
 
-// ============ INIT ============
-(function init() {
-    const userId = getCurrentUser();
-    if (userId && getUsers()[userId]) {
-        document.getElementById('welcomeSection').style.display = 'block';
-        document.getElementById('welcomeUsername').textContent = userId;
-        document.getElementById('heroBtn').textContent = 'Enter';
-        document.getElementById('heroBtn').href = 'clock.html';
-    }
-    initDotGrid();
-    setTimeout(() => shuffleTitle(getGreeting(), 'heroTitle'), 400);
-})();
-</script>
-</body>
-</html>// ============ DOTGRID ============
+// ============ DOTGRID ============
 function initDotGrid() {
     const container = document.getElementById('dotgridBg');
     const canvas = document.getElementById('dotgridCanvas');
