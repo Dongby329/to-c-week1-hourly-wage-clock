@@ -32,10 +32,10 @@ main { position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:ce
 }
 .pill .dot { width:5px;height:5px;border-radius:50%; }
 .pill.before { background:rgba(113,113,122,0.08);color:#a1a1aa; } .pill.before .dot { background:#a1a1aa; }
-.pill.working { background:rgba(52,211,153,0.08);color:#34d399; } .pill.working .dot { background:#34d399;animation:breathe 1.5s infinite; }
-.pill.after { background:rgba(251,191,36,0.08);color:#fbbf24; } .pill.after .dot { background:#fbbf24; }
-.pill.overtime { background:rgba(248,113,113,0.08);color:#f87171; } .pill.overtime .dot { background:#f87171;animation:breathe 0.8s infinite; }
-.pill.rest { background:rgba(139,92,246,0.08);color:#a78bfa; } .pill.rest .dot { background:#a78bfa; }
+.pill.working { background:rgba(245,158,11,0.08);color:#f59e0b; } .pill.working .dot { background:#f59e0b;animation:breathe 1.5s infinite; }
+.pill.after { background:rgba(245,158,11,0.08);color:#f59e0b; } .pill.after .dot { background:#f59e0b; }
+.pill.overtime { background:rgba(245,158,11,0.12);color:#f59e0b; } .pill.overtime .dot { background:#f59e0b;animation:breathe 0.8s infinite; }
+.pill.rest { background:rgba(113,113,122,0.08);color:#a1a1aa; } .pill.rest .dot { background:#a1a1aa; }
 @keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(1.8)} }
 
 /* Message */
@@ -50,14 +50,14 @@ main { position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:ce
   font-size:60px;font-weight:700;letter-spacing:-3px;line-height:1;
   font-family:'Courier New',monospace;transition:color 0.5s;
 }
-.working .sym,.working .num { color:#34d399; }
-.after .sym,.after .num { color:#fbbf24; }
-.overtime .sym,.overtime .num { color:#f87171; }
-.rest .sym,.rest .num { color:#a78bfa; }
+.working .sym,.working .num { color:#f59e0b; }
+.after .sym,.after .num { color:#f59e0b; }
+.overtime .sym,.overtime .num { color:#f59e0b; }
+.rest .sym,.rest .num { color:#6b6b75; }
 .amt .lbl { font-size:11px;color:#6b6b75;margin-top:2px;transition:color 0.5s; }
-.working .amt .lbl { color:#059669; }
+.working .amt .lbl { color:#b45309; }
 .after .amt .lbl { color:#b45309; }
-.overtime .amt .lbl { color:#dc2626; }
+.overtime .amt .lbl { color:#b45309; }
 
 /* Breakdown */
 .bd { display:none;font-size:10px;color:#6b6b75;margin-bottom:2px; }
@@ -68,22 +68,22 @@ main { position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:ce
 .prog { margin:14px 0 16px; }
 .prog .outer { height:2px;background:rgba(255,255,255,0.04);border-radius:1px;overflow:hidden; }
 .prog .inner { height:100%;border-radius:1px;transition:width 1s linear; }
-.working .prog .inner { background:linear-gradient(90deg,#059669,#34d399); }
-.after .prog .inner { width:100%;background:linear-gradient(90deg,#d97706,#fbbf24); }
-.overtime .prog .inner { width:100%;background:linear-gradient(90deg,#dc2626,#f87171); }
+.working .prog .inner { background:linear-gradient(90deg,#b45309,#f59e0b); }
+.after .prog .inner { width:100%;background:linear-gradient(90deg,#b45309,#f59e0b); }
+.overtime .prog .inner { width:100%;background:linear-gradient(90deg,#b45309,#f59e0b); }
 
 /* OT actions */
 .ot { display:none;margin-bottom:12px; }
 .after .ot,.overtime .ot { display:block; }
-.ot .rate { font-size:9px;color:#dc2626;margin-bottom:4px; }
+.ot .rate { font-size:9px;color:#b45309;margin-bottom:4px; }
 .ot .btns { display:flex;gap:6px;justify-content:center; }
 .ot .btns button {
   padding:7px 22px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;
   font-family:inherit;transition:0.2s;border:1px solid;
 }
-.ot .start { background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#f87171; }
-.ot .start:hover { background:rgba(239,68,68,0.16); }
-.ot .stop { background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);color:#fbbf24; }
+.ot .start { background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);color:#f59e0b; }
+.ot .start:hover { background:rgba(245,158,11,0.16); }
+.ot .stop { background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);color:#f59e0b; }
 .ot .stop:hover { background:rgba(245,158,11,0.16); }
 </style>
 </head>
