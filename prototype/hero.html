@@ -286,23 +286,9 @@ function shuffle(el, text, charW, charH){
     document.getElementById('heroBtn').href = 'clock.html';
   }
 
-  // Show text immediately
+  // Display text immediately — static, no animation
   document.getElementById('titleLine').textContent = getGreeting();
   document.getElementById('titleSub').textContent = 'fellow worker';
-
-  // Shuffle animate after font ready
-  function anim(){
-    shuffle(document.getElementById('titleLine'), getGreeting(), 24, 36);
-    setTimeout(function(){
-      shuffle(document.getElementById('titleSub'), 'fellow worker', 16, 28);
-    }, 500);
-  }
-
-  if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(function(){ setTimeout(anim, 200); });
-  } else {
-    setTimeout(anim, 600);
-  }
 })();
 </script>
 </body>
