@@ -53,7 +53,40 @@ h2 {
 <script>
 var h = new Date().getHours();
 var g = h>=5&&h<12?'Good morning':(h>=12&&h<18?'Good afternoon':'Good evening');
-document.getElementById('t1').textContent = g;
+// Title display
+var t1=document.getElementById('t1');
+t1.textContent = g;
+
+// Shuffle animation
+function shuffle(el,text,cw,ch){
+  el.textContent='';
+  var set='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
+  var steps=8;
+  for(var i=0;i<text.length;i++){
+    (function(ch,idx){
+      var w=document.createElement('span');
+      w.style.cssText='display:inline-block;overflow:hidden;vertical-align:bottom;width:'+(ch===' '?cw*0.4:cw)+'px;height:'+ch+'px';
+      var s=document.createElement('span');
+      s.style.cssText='display:inline-flex;flex-direction:column;will-change:transform';
+      for(var j=0;j<steps;j++){
+        var sp=document.createElement('span');
+        sp.textContent=set[Math.floor(Math.random()*set.length)];
+        sp.style.cssText='display:block;text-align:center;height:'+ch+'px;line-height:'+ch+'px;font-family:inherit;font-size:inherit;color:inherit';
+        s.appendChild(sp);
+      }
+      var fn=document.createElement('span');
+      fn.textContent=ch;
+      fn.style.cssText='display:block;text-align:center;height:'+ch+'px;line-height:'+ch+'px;font-family:inherit;font-size:inherit;color:inherit';
+      s.appendChild(fn);
+      w.appendChild(s);el.appendChild(w);
+      setTimeout(function(){
+        s.style.transition='transform '+(400+Math.random()*100)+'ms cubic-bezier(0.22,0.61,0.36,1)';
+        s.style.transform='translateY('+(-steps*ch)+'px)';
+      },idx*60+Math.random()*30);
+    })(text[i],i);
+  }
+}
+setTimeout(function(){ shuffle(t1,g,24,42); },600);
 
 var u = sessionStorage.getItem('wageClock_currentUser');
 if(u){ try{
