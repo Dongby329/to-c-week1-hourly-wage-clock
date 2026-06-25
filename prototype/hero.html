@@ -58,6 +58,16 @@
             margin-bottom: 56px;
             overflow: visible;
         }
+        .hero-title-sub {
+            font-size: 18px;
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 3px;
+            margin-top: 12px;
+        }
+        .hero-title-sub .shuffle-char-strip span {
+            font-size: 18px;
+            color: rgba(255,255,255,0.55);
+        }
         .hero-title {
             font-family: 'PixelChinese', 'Press Start 2P', monospace;
             font-size: 26px; font-weight: 400;
@@ -141,6 +151,7 @@
     <div class="hero-container">
         <div class="hero-title-wrap">
             <h1 class="hero-title" id="heroTitle"></h1>
+            <h1 class="hero-title hero-title-sub" id="heroTitleSub"></h1>
         </div>
 
         <div class="hero-btn-wrap">
@@ -171,19 +182,20 @@ function switchAccount() {
 // ============ GREETING ============
 function getGreeting() {
     const h = new Date().getHours();
-    if (h >= 5 && h < 12) return 'Good morning, fellow worker';
-    if (h >= 12 && h < 18) return 'Good afternoon, fellow worker';
-    return 'Good evening, fellow worker';
+    if (h >= 5 && h < 12) return 'Good morning';
+    if (h >= 12 && h < 18) return 'Good afternoon';
+    return 'Good evening';
 }
 
 // ============ SHUFFLE TITLE ============
-function shuffleTitle(text, containerId) {
+function shuffleTitle(text, containerId, size) {
     const container = document.getElementById(containerId);
     if (!container) return;
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
     const chars = text.split('');
-    const charW = 26;  // fusion-pixel monospaced at 26px
-    const charH = 36;
+    const s = size || 26;
+    const charW = s;
+    const charH = Math.round(s * 1.4);
     const steps = 10;
     const wraps = [];
 
@@ -470,7 +482,10 @@ function initDotGrid() {
         document.getElementById('heroBtn').href = 'clock.html';
     }
     initDotGrid();
-    setTimeout(() => shuffleTitle(getGreeting(), 'heroTitle'), 400);
+    setTimeout(() => {
+        shuffleTitle(getGreeting(), 'heroTitle');
+        setTimeout(() => shuffleTitle('fellow worker', 'heroTitleSub', 18), 600);
+    }, 400);
 })();
 </script>
 </body>
