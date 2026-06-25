@@ -146,52 +146,6 @@ function getGreeting(){
   return 'Good evening';
 }
 
-// ===== SHUFFLE =====
-function shuffle(el, text, charW, charH){
-  el.textContent = '';
-  var chars = text.split('');
-  var set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
-  var steps = 10;
-  var wraps = [];
-
-  chars.forEach(function(ch){
-    var wrap = document.createElement('span');
-    wrap.className = 'shuffle-wrap';
-    wrap.style.width = (ch===' '?charW*0.5:charW)+'px';
-    wrap.style.height = charH+'px';
-
-    var strip = document.createElement('span');
-    strip.className = 'shuffle-strip';
-
-    for(var s=0;s<steps;s++){
-      var sp = document.createElement('span');
-      sp.textContent = set[Math.floor(Math.random()*set.length)];
-      sp.style.height = charH+'px';
-      strip.appendChild(sp);
-    }
-    var fin = document.createElement('span');
-    fin.textContent = ch;
-    fin.style.height = charH+'px';
-    strip.appendChild(fin);
-
-    wrap.appendChild(strip);
-    el.appendChild(wrap);
-    wraps.push({strip:strip, steps:steps});
-  });
-
-  wraps.forEach(function(w, i){
-    var delay = i*50+Math.random()*30;
-    var dur = 380+Math.random()*120;
-    var dist = -(w.steps*charH);
-    w.strip.style.transition = 'none';
-    w.strip.style.transform = 'translateY(0)';
-    setTimeout(function(){
-      w.strip.style.transition = 'transform '+dur+'ms cubic-bezier(0.22,0.61,0.36,1)';
-      w.strip.style.transform = 'translateY('+dist+'px)';
-    }, delay);
-  });
-}
-
 // ===== DOTGRID =====
 (function(){
   var c = document.getElementById('bg');
