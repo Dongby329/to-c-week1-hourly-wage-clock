@@ -7,6 +7,11 @@
     <title>时薪桌面钟</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'Zpix';
+            src: url('https://cdn.jsdelivr.net/npm/zpix@3.1.0/dist/Zpix.woff2') format('woff2');
+            font-display: swap;
+        }
         :root {
             --bg: #08080c;
             --surface: #0f0f13;
@@ -51,14 +56,14 @@
         /* Pixel title */
         .hero-title-wrap { margin-bottom: 56px; }
         .hero-title {
-            font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 18px; font-weight: 400;
+            font-family: 'Zpix', 'Press Start 2P', monospace;
+            font-size: 36px; font-weight: 400;
             color: #ffffff;
-            letter-spacing: 2px;
-            line-height: 2;
+            letter-spacing: 4px;
+            line-height: 1.6;
             text-transform: none;
             display: inline-block;
-            text-shadow: 0 0 40px rgba(255,255,255,0.08);
+            text-shadow: 0 0 60px rgba(255,255,255,0.10);
         }
         /* Shuffle strips */
         .shuffle-char-wrap {
@@ -70,9 +75,9 @@
             will-change: transform;
         }
         .shuffle-char-strip span {
-            display: block; text-align: center; line-height: 1.6;
-            font-family: 'Press Start 2P', 'Courier New', monospace;
-            font-size: 18px; color: #ffffff;
+            display: block; text-align: center; line-height: 1.25;
+            font-family: 'Zpix', 'Press Start 2P', monospace;
+            font-size: 36px; color: #ffffff;
         }
 
         /* Button */
@@ -110,7 +115,7 @@
         }
         .welcome-user strong {
             color: #ffffff; font-weight: 600;
-            font-family: 'Press Start 2P', monospace; font-size: 11px;
+            font-family: 'Zpix', 'Press Start 2P', monospace; font-size: 14px;
         }
         .switch-btn {
             display: inline-flex; align-items: center; gap: 4px;
@@ -161,9 +166,9 @@ function switchAccount() {
 // ============ GREETING ============
 function getGreeting() {
     const h = new Date().getHours();
-    if (h >= 5 && h < 12) return 'GOOD MORNING';
-    if (h >= 12 && h < 18) return 'GOOD AFTERNOON';
-    return 'GOOD EVENING';
+    if (h >= 5 && h < 12) return '早上好，打工人';
+    if (h >= 12 && h < 18) return '下午好，打工人';
+    return '晚上好，打工人';
 }
 
 // ============ SHUFFLE TITLE ============
@@ -172,15 +177,16 @@ function shuffleTitle(text, containerId) {
     if (!container) return;
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
     const chars = text.split('');
-    const charW = 12;  // Press Start 2P at 18px ≈ 12px per char
-    const charH = 30;
+    const charW = 22;  // Zpix at 36px ≈ 22px per Latin char, 36px per CJK
+    const charH = 46;
     const steps = 10;
     const wraps = [];
 
     chars.forEach(finalChar => {
         const wrap = document.createElement('span');
         wrap.className = 'shuffle-char-wrap';
-        const w = finalChar === ' ' ? charW * 0.6 : charW;
+        const isCJK = /[一-鿿，。！？、：；""''（）【】《》]/.test(finalChar);
+        const w = finalChar === ' ' ? charW * 0.5 : (isCJK ? charW * 1.6 : charW);
         wrap.style.width = w + 'px';
         wrap.style.height = charH + 'px';
 
