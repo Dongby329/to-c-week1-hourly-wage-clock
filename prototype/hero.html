@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         @font-face {
-            font-family: 'Zpix';
-            src: url('https://cdn.jsdelivr.net/npm/zpix@3.1.0/dist/Zpix.woff2') format('woff2');
+            font-family: 'PixelChinese';
+            src: url('https://cdn.jsdelivr.net/gh/TakWolf/fusion-pixel-font@main/fonts/fusion-pixel-12px-monospaced-zh_hans.woff2') format('woff2');
             font-display: swap;
         }
         :root {
@@ -44,8 +44,8 @@
         /* Hero */
         .hero-container {
             position: relative; z-index: 1;
-            text-align: center; padding: 3rem 2rem;
-            max-width: 520px; width: 100%;
+            text-align: center; padding: 3rem 1rem;
+            max-width: 640px; width: 100%;
             animation: fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes fadeUp {
@@ -54,16 +54,21 @@
         }
 
         /* Pixel title */
-        .hero-title-wrap { margin-bottom: 56px; }
+        .hero-title-wrap {
+            margin-bottom: 56px;
+            overflow: visible;
+        }
         .hero-title {
-            font-family: 'Zpix', 'Press Start 2P', monospace;
+            font-family: 'PixelChinese', 'Press Start 2P', monospace;
             font-size: 36px; font-weight: 400;
             color: #ffffff;
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             line-height: 1.6;
             text-transform: none;
             display: inline-block;
             text-shadow: 0 0 60px rgba(255,255,255,0.10);
+            max-width: 100%;
+            word-break: keep-all;
         }
         /* Shuffle strips */
         .shuffle-char-wrap {
@@ -76,7 +81,7 @@
         }
         .shuffle-char-strip span {
             display: block; text-align: center; line-height: 1.25;
-            font-family: 'Zpix', 'Press Start 2P', monospace;
+            font-family: 'PixelChinese', 'Press Start 2P', monospace;
             font-size: 36px; color: #ffffff;
         }
 
@@ -115,7 +120,7 @@
         }
         .welcome-user strong {
             color: #ffffff; font-weight: 600;
-            font-family: 'Zpix', 'Press Start 2P', monospace; font-size: 14px;
+            font-family: 'PixelChinese', 'Press Start 2P', monospace; font-size: 14px;
         }
         .switch-btn {
             display: inline-flex; align-items: center; gap: 4px;
@@ -177,16 +182,15 @@ function shuffleTitle(text, containerId) {
     if (!container) return;
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
     const chars = text.split('');
-    const charW = 22;  // Zpix at 36px ≈ 22px per Latin char, 36px per CJK
-    const charH = 46;
+    const charW = 36;  // fusion-pixel monospaced at 36px
+    const charH = 48;
     const steps = 10;
     const wraps = [];
 
     chars.forEach(finalChar => {
         const wrap = document.createElement('span');
         wrap.className = 'shuffle-char-wrap';
-        const isCJK = /[一-鿿，。！？、：；""''（）【】《》]/.test(finalChar);
-        const w = finalChar === ' ' ? charW * 0.5 : (isCJK ? charW * 1.6 : charW);
+        const w = finalChar === ' ' ? charW * 0.4 : charW;
         wrap.style.width = w + 'px';
         wrap.style.height = charH + 'px';
 
