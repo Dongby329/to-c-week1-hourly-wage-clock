@@ -1,144 +1,145 @@
-<!-- 时薪桌面钟 · 登录 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 · 时薪桌面钟</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        
-        :root { --bg:#08080c;--surface:#0f0f13;--border:#1e1e24;--text:#ededef;--muted:#6b6b75;--accent:#f59e0b; }
-        * { margin:0;padding:0;box-sizing:border-box; }
-        body {
-            font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
-            background:var(--bg);color:var(--text);min-height:100vh;
-            display:flex;align-items:center;justify-content:center;
-            -webkit-font-smoothing:antialiased;overflow:hidden;
-        }
-        .dotgrid-bg { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
-        .dotgrid-bg canvas { display:block;width:100%;height:100%;pointer-events:none; }
-        .auth { position:relative;z-index:1;width:340px;padding:2rem;animation:fadeUp .6s ease; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        .auth-header { text-align:center;margin-bottom:36px; }
-        .auth-title { font-family:'Press Start 2P',monospace;font-size:13px;color:#fff;letter-spacing:2px;margin-bottom:12px; }
-        .auth-sub { font-size:12px;color:var(--muted);letter-spacing:0.5px; }
-        .form-group { margin-bottom:14px; }
-        .form-label { display:block;font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase; }
-        .form-input {
-            width:100%;padding:10px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);
-            border-radius:4px;color:var(--text);font-size:13px;font-family:inherit;
-            transition:all .2s;outline:none;
-        }
-        .form-input:focus { border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.02); }
-        .form-input::placeholder { color:#3a3a40; }
-        .form-btn {
-            width:100%;padding:10px;border-radius:4px;font-size:12px;font-weight:500;
-            cursor:pointer;font-family:inherit;transition:all .2s;letter-spacing:1px;
-            background:transparent;border:1px solid rgba(255,255,255,0.2);color:#d4d4d8;
-            margin-top:8px;
-        }
-        .form-btn:hover { background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.4);color:#fff; }
-        .form-btn.sec { border-color:rgba(255,255,255,0.06);color:var(--muted);margin-top:6px; }
-        .form-btn.sec:hover { border-color:rgba(255,255,255,0.15);color:#a1a1aa; }
-        .form-error { font-size:11px;color:#ef4444;text-align:center;min-height:18px;line-height:18px; }
-        .user-list { margin-top:28px;text-align:center; }
-        .user-list-label { font-size:9px;color:#3a3a40;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase; }
-        .user-chip {
-            display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:4px;
-            background:transparent;border:1px solid rgba(255,255,255,0.06);font-size:11px;
-            cursor:pointer;transition:all .2s;margin:3px;color:var(--muted);
-        }
-        .user-chip:hover { border-color:rgba(255,255,255,0.2);color:var(--text); }
-        .user-chip .dot { width:5px;height:5px;border-radius:50%;background:var(--accent); }
-        .back { text-align:center;margin-top:28px; }
-        .back a { font-size:10px;color:#3a3a40;text-decoration:none;transition:color .2s;letter-spacing:1px; }
-        .back a:hover { color:var(--muted); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 时薪桌面钟</title>
+<style>
+* { margin:0;padding:0;box-sizing:border-box; }
+canvas { position:fixed;inset:0;z-index:0;pointer-events:none;display:block; }
+body {
+  background:#08080c;color:#ededef;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+.auth { position:relative;z-index:1;width:320px;padding:2rem;text-align:center; }
+.auth h1 { font-family:'Courier New',monospace;font-size:16px;color:#fff;letter-spacing:2px;margin-bottom:8px; }
+.auth .sub { font-size:11px;color:#6b6b75;letter-spacing:1px;margin-bottom:28px; }
+.row { margin-bottom:12px;text-align:left; }
+.row label { display:block;font-size:9px;color:#6b6b75;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px; }
+.row input {
+  width:100%;padding:9px 10px;background:transparent;border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px;color:#ededef;font-size:13px;outline:none;font-family:inherit;
+}
+.row input:focus { border-color:rgba(255,255,255,0.35); }
+.err { font-size:10px;color:#ef4444;text-align:center;min-height:16px;margin-bottom:4px; }
+.btn {
+  width:100%;padding:9px;border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit;
+  background:transparent;border:1px solid rgba(255,255,255,0.2);color:#d4d4d8;
+  letter-spacing:1px;transition:0.2s;margin-top:6px;
+}
+.btn:hover { background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.4);color:#fff; }
+.btn.sec { border-color:rgba(255,255,255,0.06);color:#6b6b75; }
+.btn.sec:hover { border-color:rgba(255,255,255,0.15);color:#a1a1aa; }
+.chips { margin-top:20px; }
+.chips label { font-size:9px;color:#3a3a40;letter-spacing:1px;text-transform:uppercase; }
+.chip {
+  display:inline-block;padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
+  font-size:10px;color:#6b6b75;cursor:pointer;margin:3px;transition:0.2s;
+}
+.chip:hover { border-color:rgba(255,255,255,0.2);color:#fff; }
+.chip .dot { display:inline-block;width:5px;height:5px;border-radius:50%;background:#f59e0b;margin-right:4px; }
+.back { margin-top:20px;font-size:10px; }
+.back a { color:#3a3a40;text-decoration:none;letter-spacing:1px; }
+.back a:hover { color:#6b6b75; }
+</style>
 </head>
 <body>
-<div class="waves-bg" id="dotgridBg"><canvas id="dotgridCanvas"></canvas></div>
+<canvas id="bg"></canvas>
 <div class="auth">
-    <div class="auth-header">
-        <h1 class="auth-title" id="authTitle">SIGN IN</h1>
-        <p class="auth-sub" id="authSubtitle">continue your session</p>
-    </div>
-    <form id="authForm" onsubmit="handleSubmit(event)">
-        <div class="form-group">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-input" id="username" placeholder="enter username" required autocomplete="off">
-        </div>
-        <div class="form-group" id="passwordGroup">
-            <label class="form-label">Password</label>
-            <input type="password" class="form-input" id="password" placeholder="enter password" autocomplete="off">
-        </div>
-        <div class="form-error" id="formError"></div>
-        <button type="submit" class="form-btn" id="submitBtn">Sign In</button>
-    </form>
-    <button class="form-btn sec" id="toggleModeBtn" onclick="toggleMode()">Create Account</button>
-    <div class="user-list" id="userList" style="display:none;">
-        <div class="user-list-label">Quick Switch</div>
-        <div id="userChips"></div>
-    </div>
-    <div class="back"><a href="hero.html">← back</a></div>
+  <h1 id="t">SIGN IN</h1>
+  <p class="sub" id="sub">continue your session</p>
+  <form onsubmit="return handle(event)">
+    <div class="row"><label>Username</label><input id="un" placeholder="enter username" required autocomplete="off"></div>
+    <div class="row" id="pwRow"><label>Password</label><input id="pw" type="password" placeholder="enter password" autocomplete="off"></div>
+    <div class="err" id="er"></div>
+    <button class="btn" id="btn">Sign In</button>
+  </form>
+  <button class="btn sec" id="tgl" onclick="toggle()">Create Account</button>
+  <div class="chips" id="chipsWrap" style="display:none"><label>Quick Switch</label><div id="chips"></div></div>
+  <div class="back"><a href="hero.html">← back</a></div>
 </div>
 <script>
-const UK='wageClock_users',CK='wageClock_currentUser';let isReg=false;
+var UK='wageClock_users',CK='wageClock_currentUser',reg=false;
 function gU(){try{return JSON.parse(localStorage.getItem(UK))||{}}catch(e){return{}}}
 function sU(u){localStorage.setItem(UK,JSON.stringify(u));}
-function sCU(id){sessionStorage.setItem(CK,id);}
-function gCU(){return sessionStorage.getItem(CK);}
-function hash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return'h_'+Math.abs(h).toString(36);}
-function renderChips(){const u=gU(),ids=Object.keys(u),c=document.getElementById('userChips'),l=document.getElementById('userList');if(!ids.length){l.style.display='none';return;}l.style.display='block';c.innerHTML=ids.map(i=>`<span class="user-chip" onclick="quickLogin('${i}')"><span class="dot"></span>${u[i].username}</span>`).join('');}
-function quickLogin(id){sCU(id);go();}
-function toggleMode(){isReg=!isReg;document.getElementById('authTitle').textContent=isReg?'REGISTER':'SIGN IN';document.getElementById('authSubtitle').textContent=isReg?'create your account':'continue your session';document.getElementById('submitBtn').textContent=isReg?'Register':'Sign In';document.getElementById('toggleModeBtn').textContent=isReg?'Sign In Instead':'Create Account';document.getElementById('passwordGroup').style.display='block';document.getElementById('formError').textContent='';}
-function handleSubmit(e){e.preventDefault();const un=document.getElementById('username').value.trim(),pw=document.getElementById('password').value,er=document.getElementById('formError');if(!un||un.length<2){er.textContent='username too short';return;}const u=gU();if(isReg){if(!pw||pw.length<3){er.textContent='password too short';return;}if(u[un]){er.textContent='username exists';return;}u[un]={id:un,username:un,passwordHash:hash(pw),createdAt:new Date().toISOString().slice(0,10)};sU(u);sCU(un);go();}else{if(u[un]){if(pw&&u[un].passwordHash===hash(pw)){sCU(un);go();}else if(pw){er.textContent='wrong password';}else{er.textContent='enter password';}}else{if(!pw){u[un]={id:un,username:un,passwordHash:'',createdAt:new Date().toISOString().slice(0,10)};sU(u);sCU(un);go();}else{u[un]={id:un,username:un,passwordHash:hash(pw),createdAt:new Date().toISOString().slice(0,10)};sU(u);sCU(un);go();}}}}
-function go(){window.location.href='clock.html';}
+function hash(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return'h_'+Math.abs(h).toString(36);}
+function renderChips(){
+  var u=gU(),ids=Object.keys(u),c=document.getElementById('chips'),w=document.getElementById('chipsWrap');
+  if(!ids.length){w.style.display='none';return;}
+  w.style.display='block';c.innerHTML=ids.map(function(i){return '<span class="chip" onclick="qlogin(\''+i+'\')"><span class="dot"></span>'+u[i].username+'</span>';}).join('');
+}
+function qlogin(id){sessionStorage.setItem(CK,id);location.href='clock.html';}
+function toggle(){
+  reg=!reg;document.getElementById('t').textContent=reg?'REGISTER':'SIGN IN';
+  document.getElementById('sub').textContent=reg?'create your account':'continue your session';
+  document.getElementById('btn').textContent=reg?'Register':'Sign In';
+  document.getElementById('tgl').textContent=reg?'Sign In Instead':'Create Account';
+  document.getElementById('pwRow').style.display='block';document.getElementById('er').textContent='';
+}
+function handle(e){
+  e.preventDefault();var un=document.getElementById('un').value.trim();
+  var pw=document.getElementById('pw').value,er=document.getElementById('er');
+  if(!un||un.length<2){er.textContent='username too short';return false;}
+  var u=gU();
+  if(reg){
+    if(!pw||pw.length<3){er.textContent='password too short';return false;}
+    if(u[un]){er.textContent='username exists';return false;}
+    u[un]={id:un,username:un,passwordHash:hash(pw),createdAt:new Date().toISOString().slice(0,10)};
+    sU(u);sessionStorage.setItem(CK,un);location.href='clock.html';
+  }else{
+    if(u[un]){
+      if(pw&&u[un].passwordHash===hash(pw)){sessionStorage.setItem(CK,un);location.href='clock.html';}
+      else if(pw){er.textContent='wrong password';}
+    }else{
+      u[un]={id:un,username:un,passwordHash:pw?hash(pw):'',createdAt:new Date().toISOString().slice(0,10)};
+      sU(u);sessionStorage.setItem(CK,un);location.href='clock.html';
+    }
+  }
+  return false;
+}
+renderChips();
+if(sessionStorage.getItem(CK)&&gU()[sessionStorage.getItem(CK)])location.href='clock.html';
+
 // DotGrid
 (function(){
-    const c=document.getElementById('dotgridBg'),cv=document.getElementById('dotgridCanvas'),ctx=cv.getContext('2d');
-    const dotSize=3,gap=28,proximity=120,resilience=0.08,friction=0.88;
-    let dots=[],w=0,h=0;
-    const ptr={x:-999,y:-999,px:0,py:0,vx:0,vy:0};
-    function bg(){
-        const r=c.getBoundingClientRect();w=r.width;h=r.height;
-        const dpr=window.devicePixelRatio||1;
-        cv.width=w*dpr;cv.height=h*dpr;cv.style.width=w+'px';cv.style.height=h+'px';
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-        const cell=dotSize+gap,cols=Math.floor(w/cell),rows=Math.floor(h/cell);
-        const gW=cell*cols,gH=cell*rows;
-        const ox=(w-gW)/2+dotSize/2,oy=(h-gH)/2+dotSize/2;
-        dots=[];
-        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)dots.push({cx:ox+c*cell,cy:oy+r*cell,x:0,y:0,vx:0,vy:0});
+  var cv=document.getElementById('bg'),ctx=cv.getContext('2d');
+  var S=3,G=28,P=120,R=0.08,F=0.88,W=0,H=0,dots=[];
+  var pt={x:-999,y:-999,px:0,py:0,vx:0,vy:0};
+  function build(){
+    var r=cv.parentNode.getBoundingClientRect();W=r.width;H=r.height;
+    var dpr=devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;
+    cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+    var cell=S+G,cols=Math.floor(W/cell),rows=Math.floor(H/cell);
+    var gW=cell*cols,gH=cell*rows,ox=(W-gW)/2+S/2,oy=(H-gH)/2+S/2;
+    dots=[];for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)dots.push({cx:ox+c*cell,cy:oy+r*cell,x:0,y:0,vx:0,vy:0});
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);var psq=P*P;
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],ox=d.cx+d.x,oy=d.cy+d.y,dx=d.cx-pt.x,dy=d.cy-pt.y,dsq=dx*dx+dy*dy;
+      var a=0.1;if(dsq<psq){var t=1-Math.sqrt(dsq)/P;a=0.1+t*0.45;}
+      ctx.beginPath();ctx.arc(ox,oy,S/2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';ctx.fill();
     }
-    function draw(){
-        ctx.clearRect(0,0,w,h);const psq=proximity*proximity;
-        for(const d of dots){
-            const ox=d.cx+d.x,oy=d.cy+d.y,dx=d.cx-ptr.x,dy=d.cy-ptr.y,dsq=dx*dx+dy*dy;
-            let a=0.12;if(dsq<psq){const t=1-Math.sqrt(dsq)/proximity;a=0.12+t*0.45;}
-            ctx.beginPath();ctx.arc(ox,oy,dotSize/2,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';ctx.fill();
-        }
+  }
+  function upd(){
+    pt.vx+=(pt.x-pt.px-pt.vx)*0.3;pt.vy+=(pt.y-pt.py-pt.vy)*0.3;pt.px=pt.x;pt.py=pt.y;
+    var spd=Math.hypot(pt.vx,pt.vy);
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i],dx=d.cx-pt.x,dy=d.cy-pt.y,dist=Math.hypot(dx,dy);
+      if(dist<P&&spd>5){var f=(1-dist/P)*spd*0.015;d.vx+=(dx/dist)*f;d.vy+=(dy/dist)*f;}
+      d.vx+=(0-d.x)*R;d.vy+=(0-d.y)*R;d.vx*=F;d.vy*=F;d.x+=d.vx;d.y+=d.vy;
     }
-    function upd(){
-        const pvx=ptr.x-ptr.px,pvy=ptr.y-ptr.py;
-        ptr.vx+=(pvx-ptr.vx)*0.3;ptr.vy+=(pvy-ptr.vy)*0.3;ptr.px=ptr.x;ptr.py=ptr.y;
-        const spd=Math.hypot(ptr.vx,ptr.vy);
-        for(const d of dots){
-            const dx=d.cx-ptr.x,dy=d.cy-ptr.y,dist=Math.hypot(dx,dy);
-            if(dist<proximity&&spd>5){const f=(1-dist/proximity)*spd*0.015;d.vx+=(dx/dist)*f;d.vy+=(dy/dist)*f;}
-            d.vx+=(0-d.x)*resilience;d.vy+=(0-d.y)*resilience;d.vx*=friction;d.vy*=friction;d.x+=d.vx;d.y+=d.vy;
-        }
-    }
-    function tick(){upd();draw();requestAnimationFrame(tick);}
-    function om(e){const r=c.getBoundingClientRect();ptr.x=e.clientX-r.left;ptr.y=e.clientY-r.top;}
-    function oc(e){const r=c.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
-        for(const d of dots){const dist=Math.hypot(d.cx-cx,d.cy-cy);if(dist<200){const f=(1-dist/200)*12;d.vx+=(d.cx-cx)/dist*f;d.vy+=(d.cy-cy)/dist*f;}}}
-    bg();window.addEventListener('resize',bg);window.addEventListener('mousemove',om,{passive:true});window.addEventListener('click',oc);requestAnimationFrame(tick);
+  }
+  function tick(){upd();draw();requestAnimationFrame(tick);}
+  function mv(e){var r=cv.getBoundingClientRect();pt.x=e.clientX-r.left;pt.y=e.clientY-r.top;}
+  function cl(e){var r=cv.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+    for(var i=0;i<dots.length;i++){var d=dots[i],dist=Math.hypot(d.cx-cx,d.cy-cy);
+    if(dist<200){var f=(1-dist/200)*12;d.vx+=(d.cx-cx)/dist*f;d.vy+=(d.cy-cy)/dist*f;}}}
+  setTimeout(function(){build();requestAnimationFrame(tick);},100);
+  window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
 })();
-
-// Init
-renderChips();
-const cur=gCU();if(cur&&gU()[cur])go();
 </script>
 </body>
 </html>
