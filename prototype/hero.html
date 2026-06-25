@@ -7,6 +7,14 @@
     <title>时薪桌面钟</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        /* Fallback pixel style for when Press Start 2P can't load */
+        @supports not (font-family: 'Press Start 2P') {
+            .hero-title, .shuffle-char-strip span {
+                font-family: 'Courier New', 'Consolas', monospace;
+                letter-spacing: 4px;
+                text-shadow: 2px 2px 0 rgba(255,255,255,0.1);
+            }
+        }
         :root {
             --bg: #08080c;
             --surface: #0f0f13;
@@ -187,6 +195,7 @@ function getGreeting() {
 function shuffleTitle(text, containerId, size) {
     const container = document.getElementById(containerId);
     if (!container) return;
+    container.textContent = '';  // Clear existing text before appending strips
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
     const chars = text.split('');
     const s = size || 26;
