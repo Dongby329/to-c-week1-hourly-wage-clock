@@ -1,5 +1,8 @@
 # ⏳ 时薪桌面钟 · Hourly Wage Desktop Clock
 
+[![GitHub](https://img.shields.io/badge/GitHub-Dongby329%2Fto--c--week1--hourly--wage--clock-24292e?logo=github)](https://github.com/Dongby329/to-c-week1-hourly-wage-clock)
+[![Release](https://img.shields.io/badge/release-v1.0-f59e0b)](https://github.com/Dongby329/to-c-week1-hourly-wage-clock)
+
 > 输入月薪，设定工作制度，实时看到每秒薪资累加 — 让你的时间价值肉眼可见。
 
 ## 🎯 产品定位
@@ -29,6 +32,8 @@ python -m http.server 8080
 ```
 
 浏览器打开 `http://localhost:8080/hero.html`
+
+> **在线体验**：启用 GitHub Pages 后访问 `https://dongby329.github.io/to-c-week1-hourly-wage-clock/prototype/hero.html`
 
 ### 🖥 桌面 App (Electron)
 
