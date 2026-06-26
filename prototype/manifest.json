@@ -1,0 +1,24 @@
+{
+  "name": "时薪桌面钟 · Hourly Wage Clock",
+  "short_name": "时薪钟",
+  "description": "让每一秒都看得见价值——实时时薪追踪桌面时钟",
+  "start_url": "login.html",
+  "display": "standalone",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "orientation": "any",
+  "lang": "zh-CN",
+  "categories": ["productivity", "finance"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>登录 · 时薪桌面钟</title>
+<meta name="theme-color" content="#08080c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⏱</text></svg>">
 <style>
 * { margin:0;padding:0;box-sizing:border-box; }
 canvas { position:fixed;inset:0;z-index:0;pointer-events:none;display:block; }
@@ -76,7 +79,7 @@ function renderChips(){
   if(!ids.length){w.style.display='none';return;}
   w.style.display='block';c.innerHTML=ids.map(function(i){return '<span class="chip" onclick="qlogin(\''+i+'\')"><span class="dot"></span>'+u[i].username+'</span>';}).join('');
 }
-function qlogin(id){sessionStorage.setItem(CK,id);location.href='clock.html';}
+function qlogin(id){sessionStorage.setItem(CK,id);localStorage.setItem('wageClock_rememberedUser',id);location.href='hero.html';}
 function toggle(){
   reg=!reg;document.getElementById('t').textContent=reg?'REGISTER':'SIGN IN';
   document.getElementById('sub').textContent=reg?'create your account':'continue your session';
@@ -93,20 +96,29 @@ function handle(e){
     if(!pw||pw.length<3){er.textContent='password too short';return false;}
     if(u[un]){er.textContent='username exists';return false;}
     u[un]={id:un,username:un,passwordHash:hash(pw),createdAt:new Date().toISOString().slice(0,10)};
-    sU(u);sessionStorage.setItem(CK,un);location.href='clock.html';
+    sU(u);sessionStorage.setItem(CK,un);localStorage.setItem('wageClock_rememberedUser',un);location.href='hero.html';
   }else{
     if(u[un]){
-      if(pw&&u[un].passwordHash===hash(pw)){sessionStorage.setItem(CK,un);location.href='clock.html';}
+      if(pw&&u[un].passwordHash===hash(pw)){sessionStorage.setItem(CK,un);localStorage.setItem('wageClock_rememberedUser',un);location.href='hero.html';}
       else if(pw){er.textContent='wrong password';}
     }else{
       u[un]={id:un,username:un,passwordHash:pw?hash(pw):'',createdAt:new Date().toISOString().slice(0,10)};
-      sU(u);sessionStorage.setItem(CK,un);location.href='clock.html';
+      sU(u);sessionStorage.setItem(CK,un);localStorage.setItem('wageClock_rememberedUser',un);location.href='hero.html';
     }
   }
   return false;
 }
 renderChips();
-if(sessionStorage.getItem(CK)&&gU()[sessionStorage.getItem(CK)])location.href='clock.html';
+// Auto-restore: if remembered user exists, auto-login
+if(!sessionStorage.getItem(CK)){
+  var remembered = localStorage.getItem('wageClock_rememberedUser');
+  if(remembered && gU()[remembered]){
+    sessionStorage.setItem(CK, remembered);
+    location.href = 'hero.html';
+    throw new Error('redirect'); // stop further execution
+  }
+}
+if(sessionStorage.getItem(CK)&&gU()[sessionStorage.getItem(CK)])location.href='hero.html';
 
 // DotGrid
 (function(){
@@ -159,5 +171,7 @@ card.addEventListener('mouseleave',function(){
   card.style.transform='rotateY(0deg) rotateX(0deg)';
 });
 </script>
+<script src="i18n.js"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}</script>
 </body>
 </html>

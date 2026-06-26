@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>设置 · 时薪桌面钟</title>
+<meta name="theme-color" content="#08080c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⏱</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<link rel="stylesheet" href="target-cursor.css">
 <style>
 * { margin:0;padding:0;box-sizing:border-box; }
 canvas { position:fixed;inset:0;z-index:0;pointer-events:none;display:block; }
@@ -62,7 +70,7 @@ input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
   width:36px;height:36px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);
   background:transparent;color:#6b6b75;font-size:11px;cursor:pointer;font-family:inherit;transition:0.2s;
 }
-.days button.work { background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.25);color:#34d399; }
+.days button.work { background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);color:#f59e0b; }
 
 /* OT section */
 .ot-sect { margin-top:16px;padding:14px;border:1px solid rgba(255,255,255,0.04);border-radius:6px;text-align:left; }
@@ -72,9 +80,13 @@ input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
   padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
   background:transparent;color:#6b6b75;font-size:10px;cursor:pointer;font-family:inherit;transition:0.2s;
 }
-.ot-modes button.sel { border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171; }
+.ot-modes button.sel { border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.06);color:#f59e0b; }
 .ot-custom { display:none;margin-top:6px; }
 .ot-custom input { font-size:16px;padding:8px;width:100px;text-align:center; }
+#otMultRow button { border-radius:4px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#6b6b75;font-family:inherit;cursor:pointer;transition:0.2s; }
+#otMultRow button:hover { border-color:rgba(255,255,255,0.2);color:#a1a1aa; }
+#otMultRow button.sel { border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.06);color:#f59e0b; }
+#satWork.sel,#satRest.sel { border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.06);color:#f59e0b; }
 .ot-custom .unit { display:inline-flex;gap:2px; }
 .ot-custom .unit button { font-size:10px;padding:4px 8px; }
 
@@ -91,17 +103,82 @@ input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
 .btn.done { background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.25);color:#34d399; }
 .btn.done:hover { background:rgba(52,211,153,0.16); }
 
+.btn.switch-acc {
+  width:100%;margin-top:16px;padding:8px;border-radius:4px;font-size:11px;font-weight:400;cursor:pointer;
+  font-family:inherit;transition:0.2s;letter-spacing:1px;
+  background:transparent;border:1px solid rgba(255,255,255,0.04);color:#52525b;
+}
+.btn.switch-acc:hover { border-color:rgba(255,255,255,0.12);color:#a1a1aa; }
+
 .err { font-size:10px;color:#ef4444;min-height:16px;margin-top:6px;text-align:center; }
 .preview { margin-top:12px;font-size:10px;color:#6b6b75; }
 .preview span { color:#a1a1aa; }
+
+/* Overview */
+.overview { display:none;text-align:left; }
+.overview.active { display:block;animation:fadeIn 0.3s ease; }
+.ov-item {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.ov-item:last-child { border-bottom:none; }
+.ov-item .ov-label { font-size:9px;color:#6b6b75;letter-spacing:1px;text-transform:uppercase; }
+.ov-item .ov-value { font-size:14px;color:#ededef;font-weight:500;text-align:right;font-family:'Courier New',monospace; }
+.ov-item .ov-sub { font-size:9px;color:#52525b;margin-top:2px; }
+.ov-highlight { font-size:13px;color:#f59e0b; }
+
+/* Language picker */
+.lang-popup {
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:200;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.lang-popup.show { display:flex; }
+.lang-popup .lang-card {
+  background:#14141a;border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;padding:24px;min-width:240px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.6);
+}
+.lang-popup .lang-card h3 {
+  font-size:10px;color:#6b6b75;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:16px;text-align:center;font-weight:500;
+}
+.lang-option {
+  display:block;width:100%;padding:10px 14px;margin-bottom:4px;
+  border:1px solid rgba(255,255,255,0.04);border-radius:6px;
+  background:transparent;color:#a1a1aa;font-size:13px;
+  cursor:pointer;font-family:inherit;text-align:left;transition:0.2s;
+}
+.lang-option:last-child { margin-bottom:0; }
+.lang-option:hover { border-color:rgba(255,255,255,0.15);color:#fff;background:rgba(255,255,255,0.02); }
+.lang-option.sel { border-color:rgba(245,158,11,0.25);background:rgba(245,158,11,0.06);color:#f59e0b; }
+.ov-item.clickable { cursor:pointer;transition:0.2s; }
+.ov-item.clickable:hover { background:rgba(255,255,255,0.02);border-radius:6px;margin:0 -8px;padding-left:8px;padding-right:8px; }
+
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas>
 <main>
   <h1>SETTINGS</h1>
-  <p class="sub">configure your wage clock</p>
+  <p class="sub" id="subtitle">configure your wage clock</p>
 
+  <!-- Overview (returning users) -->
+  <div class="overview" id="overview">
+    <div class="ov-item"><div><div class="ov-label">Monthly Salary</div></div><div class="ov-value ov-highlight" id="ovSalary">¥0</div></div>
+    <div class="ov-item"><div><div class="ov-label">Work Schedule</div></div><div><div class="ov-value" id="ovSched">-</div><div class="ov-sub" id="ovDays">-</div></div></div>
+    <div class="ov-item"><div><div class="ov-label">Work Hours</div></div><div><div class="ov-value" id="ovHours">-</div><div class="ov-sub" id="ovDur">-</div></div></div>
+    <div class="ov-item"><div><div class="ov-label">Overtime</div></div><div class="ov-value" id="ovOT" style="color:#f87171;">-</div></div>
+    <div class="ov-item"><div><div class="ov-label">Per-second Rate</div></div><div class="ov-value" id="ovRate" style="color:#34d399;">¥0.0000</div></div>
+    <div class="ov-item clickable cursor-target" id="ovLangRow" onclick="showLangPicker()"><div><div class="ov-label">Language / 语言</div></div><div class="ov-value" id="ovLang" style="font-size:12px;">中文</div></div>
+    <div class="ov-item clickable cursor-target" onclick="showCurrencyPicker()"><div><div class="ov-label">Currency / 币种</div></div><div class="ov-value" id="ovCurrency" style="font-size:12px;">¥ CNY</div></div>
+    <div class="btns" style="margin-top:20px;">
+      <button class="btn primary cursor-target" onclick="editSettings()">Edit Settings</button>
+    </div>
+  </div>
+
+  <!-- Wizard (new users) -->
+  <div id="wizard">
   <div class="steps">
     <div class="dot on" id="d1"></div><div class="line" id="l1"></div>
     <div class="dot" id="d2"></div><div class="line" id="l2"></div>
@@ -111,40 +188,42 @@ input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
   <!-- Step 1: Salary -->
   <div class="step active" id="s1">
     <h2><span class="icon">&#128176;</span>Monthly Salary</h2>
-    <input type="number" id="salary" value="15000" min="0" step="100">
-    <div class="qs">
-      <button onclick="setSal(5000)">5k</button><button onclick="setSal(8000)">8k</button>
-      <button onclick="setSal(15000)" class="sel">15k</button><button onclick="setSal(25000)">25k</button><button onclick="setSal(40000)">40k</button>
+    <input type="number" id="salary" value="15000" min="0" step="100" oninput="updatePrev();updateSalaryBtns();" onchange="updateSalaryBtns();">
+    <div class="qs" id="salaryPresets">
+      <button onclick="setSal(5000)" class="cursor-target">5k</button><button onclick="setSal(8000)" class="cursor-target">8k</button>
+      <button onclick="setSal(15000)" class="sel cursor-target">15k</button><button onclick="setSal(25000)" class="cursor-target">25k</button><button onclick="setSal(40000)" class="cursor-target">40k</button>
     </div>
-    <div class="btns"><button class="btn primary" onclick="next(1)">Next →</button></div>
+    <p style="font-size:10px;color:#6b6b75;margin-bottom:4px;">currency</p>
+    <div class="qs" id="wizCurrency"></div>
+    <div class="btns"><button class="btn primary cursor-target" onclick="next(1)">Next →</button></div>
   </div>
 
   <!-- Step 2: Schedule -->
   <div class="step" id="s2">
     <h2><span class="icon">&#128197;</span>Work Schedule</h2>
     <div class="qs" style="margin-bottom:12px">
-      <button id="scDual" class="sel" onclick="setSched('dual')">5-day (dual rest)</button>
-      <button id="scAlt" onclick="setSched('alternating')">5.5-day (alternating)</button>
-      <button id="scSingle" onclick="setSched('single')">6-day (single rest)</button>
+      <button id="scDual" class="sel cursor-target" onclick="setSched('dual')">5-day (dual rest)</button>
+      <button id="scAlt" class="cursor-target" onclick="setSched('alternating')">5.5-day (alternating)</button>
+      <button id="scSingle" class="cursor-target" onclick="setSched('single')">6-day (single rest)</button>
     </div>
     <p style="font-size:10px;color:#6b6b75;margin-bottom:4px;">tap to toggle rest days</p>
     <div class="days" id="dayToggles">
-      <button onclick="tog(0)" data-d="0" class="work">Mon</button>
-      <button onclick="tog(1)" data-d="1" class="work">Tue</button>
-      <button onclick="tog(2)" data-d="2" class="work">Wed</button>
-      <button onclick="tog(3)" data-d="3" class="work">Thu</button>
-      <button onclick="tog(4)" data-d="4" class="work">Fri</button>
-      <button onclick="tog(5)" data-d="5">Sat</button>
-      <button onclick="tog(6)" data-d="6">Sun</button>
+      <button onclick="tog(0)" data-d="0" class="work cursor-target">Mon</button>
+      <button onclick="tog(1)" data-d="1" class="work cursor-target">Tue</button>
+      <button onclick="tog(2)" data-d="2" class="work cursor-target">Wed</button>
+      <button onclick="tog(3)" data-d="3" class="work cursor-target">Thu</button>
+      <button onclick="tog(4)" data-d="4" class="work cursor-target">Fri</button>
+      <button onclick="tog(5)" data-d="5" class="cursor-target">Sat</button>
+      <button onclick="tog(6)" data-d="6" class="cursor-target">Sun</button>
     </div>
     <div id="altExtra" style="display:none;margin:8px 0;font-size:10px;color:#6b6b75;">
-      This Saturday: <button id="satWork" onclick="setSat(true)" class="sel" style="font-size:10px;padding:3px 8px;">work</button>
-      <button id="satRest" onclick="setSat(false)" style="font-size:10px;padding:3px 8px;">rest</button>
+      This Saturday: <button id="satWork" onclick="setSat(true)" class="sel cursor-target" style="font-size:10px;padding:3px 8px;">work</button>
+      <button id="satRest" onclick="setSat(false)" class="cursor-target" style="font-size:10px;padding:3px 8px;">rest</button>
     </div>
     <p style="font-size:11px;color:#6b6b75;margin-top:6px;">≈ <span id="wdCount" style="color:#fff;">22</span> days/month</p>
     <div class="btns">
-      <button class="btn secondary" onclick="prev(2)">← Back</button>
-      <button class="btn primary" onclick="next(2)">Next →</button>
+      <button class="btn secondary cursor-target" onclick="prev(2)">← Back</button>
+      <button class="btn primary cursor-target" onclick="next(2)">Next →</button>
     </div>
   </div>
 
@@ -160,21 +239,21 @@ input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
     <div class="ot-sect">
       <h3>Overtime Rate</h3>
       <div class="ot-modes">
-        <button id="otModeMult" class="sel" onclick="setOTMode('rate')">Multiplier</button>
-        <button id="otModeRate" onclick="setOTMode('persecond')">Base Rate</button>
-        <button id="otModeCustom" onclick="setOTMode('custom')">Custom</button>
+        <button id="otModeMult" class="sel cursor-target" onclick="setOTMode('rate')">Multiplier</button>
+        <button id="otModeRate" class="cursor-target" onclick="setOTMode('persecond')">Base Rate</button>
+        <button id="otModeCustom" class="cursor-target" onclick="setOTMode('custom')">Custom</button>
       </div>
       <div id="otMultRow" style="text-align:center;margin-top:6px;">
-        <button onclick="setOTMult(1.0)" style="font-size:10px;padding:3px 8px;">1x</button>
-        <button onclick="setOTMult(1.5)" class="sel" style="font-size:10px;padding:3px 8px;">1.5x</button>
-        <button onclick="setOTMult(2.0)" style="font-size:10px;padding:3px 8px;">2x</button>
-        <button onclick="setOTMult(3.0)" style="font-size:10px;padding:3px 8px;">3x</button>
+        <button onclick="setOTMult(1.0)" class="cursor-target" style="font-size:10px;padding:3px 8px;">1x</button>
+        <button onclick="setOTMult(1.5)" class="sel cursor-target" style="font-size:10px;padding:3px 8px;">1.5x</button>
+        <button onclick="setOTMult(2.0)" class="cursor-target" style="font-size:10px;padding:3px 8px;">2x</button>
+        <button onclick="setOTMult(3.0)" class="cursor-target" style="font-size:10px;padding:3px 8px;">3x</button>
       </div>
       <div class="ot-custom" id="otCustomRow">
         <div style="display:flex;gap:6px;justify-content:center;align-items:center;">
           <input type="number" id="otAmt" value="50" min="0" step="0.01" style="width:80px;">
           <span style="font-size:10px;color:#6b6b75;">¥ /</span>
-          <button onclick="togOTUnit()" id="otUnitBtn" style="font-size:10px;padding:4px 8px;">hr</button>
+          <button onclick="togOTUnit()" id="otUnitBtn" class="cursor-target" style="font-size:10px;padding:4px 8px;">hr</button>
         </div>
       </div>
     </div>
@@ -182,17 +261,127 @@ input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1); }
     <div class="preview" id="preview"></div>
 
     <div class="btns">
-      <button class="btn secondary" onclick="prev(3)">← Back</button>
-      <button class="btn done" onclick="finish()">Save & Start →</button>
+      <button class="btn secondary cursor-target" onclick="prev(3)">← Back</button>
+      <button class="btn done cursor-target" onclick="finish()">Save & Start →</button>
     </div>
   </div>
   <div class="err" id="err"></div>
+  </div><!-- /wizard -->
+
+  <button class="btn switch-acc cursor-target" onclick="logout()">⇄  Switch Account</button>
 </main>
 
+<script src="nav.js"></script>
+<script src="currency.js"></script>
+<script src="i18n.js"></script>
+<script src="target-cursor.js"></script>
 <script>
 var CU=sessionStorage.getItem('wageClock_currentUser');
 if(!CU) location.href='login.html';
 function uk(k){return'wageClock_'+CU+'_'+k;}
+function ld(k,d){try{var v=localStorage.getItem(uk(k));return v?JSON.parse(v):d;}catch(e){return d;}}
+function logout(){sessionStorage.removeItem('wageClock_currentUser');localStorage.removeItem('wageClock_rememberedUser');location.href='login.html';}
+
+// ── Language ──────────────────────────────────────────
+var LANGUAGES = [
+  { code: 'zh-CN', label: '中文 (简体)' },
+  { code: 'en',    label: 'English' },
+  { code: 'ja',    label: '日本語' },
+  { code: 'ko',    label: '한국어' },
+  { code: 'zh-TW', label: '中文 (繁體)' }
+];
+
+function getLang(){ try { return JSON.parse(localStorage.getItem(uk('language'))) || 'zh-CN'; } catch(e) { return localStorage.getItem(uk('language')) || 'zh-CN'; } }
+function setLang(code){ localStorage.setItem(uk('language'), JSON.stringify(code)); }
+
+function showLangPicker(){
+  var popup = document.getElementById('langPopup');
+  if(!popup){
+    popup = document.createElement('div');
+    popup.id = 'langPopup';
+    popup.className = 'lang-popup';
+    popup.innerHTML = '<div class="lang-card"><h3>Select Language / 选择语言</h3><div id="langOptions"></div></div>';
+    popup.addEventListener('click', function(e){ if(e.target === popup) popup.classList.remove('show'); });
+    document.body.appendChild(popup);
+  }
+  var cur = getLang();
+  var html = '';
+  LANGUAGES.forEach(function(l){
+    html += '<button class="lang-option cursor-target' + (l.code === cur ? ' sel' : '') + '" onclick="selectLang(\'' + l.code + '\')">' + l.label + '</button>';
+  });
+  popup.querySelector('#langOptions').innerHTML = html;
+  popup.classList.add('show');
+}
+
+function selectLang(code){
+  setLang(code);
+  var popup = document.getElementById('langPopup');
+  if(popup) popup.classList.remove('show');
+  var lang = LANGUAGES.find(function(l){ return l.code === code; });
+  if(lang) document.getElementById('ovLang').textContent = lang.label;
+  document.documentElement.lang = code;
+  // Re-apply translations to entire page
+  if(typeof applyI18n === 'function') applyI18n(document, code);
+}
+
+// ── Currency ─────────────────────────────────────────
+var CURRENCIES = [
+  { code: 'CNY', symbol: '¥',  label: 'CNY — 人民币' },
+  { code: 'USD', symbol: '$',  label: 'USD — US Dollar' },
+  { code: 'EUR', symbol: '€',  label: 'EUR — Euro' },
+  { code: 'GBP', symbol: '£',  label: 'GBP — Pound Sterling' },
+  { code: 'JPY', symbol: '¥',  label: 'JPY — 日本円' },
+  { code: 'KRW', symbol: '₩',  label: 'KRW — 한국 원' },
+  { code: 'TWD', symbol: 'NT$', label: 'TWD — 新台幣' },
+  { code: 'HKD', symbol: 'HK$', label: 'HKD — 港元' }
+];
+
+function getCurrency(){ try { return JSON.parse(localStorage.getItem(uk('currency'))) || 'CNY'; } catch(e) { return localStorage.getItem(uk('currency')) || 'CNY'; } }
+function setCurrency(code){ localStorage.setItem(uk('currency'), JSON.stringify(code)); }
+
+function showCurrencyPicker(){
+  var popup = document.getElementById('currPopup');
+  if(!popup){
+    popup = document.createElement('div');
+    popup.id = 'currPopup';
+    popup.className = 'lang-popup';
+    popup.innerHTML = '<div class="lang-card"><h3>Select Currency / 选择币种</h3><div id="currOptions"></div></div>';
+    popup.addEventListener('click', function(e){ if(e.target === popup) popup.classList.remove('show'); });
+    document.body.appendChild(popup);
+  }
+  var cur = getCurrency();
+  var html = '';
+  CURRENCIES.forEach(function(c){
+    html += '<button class="lang-option cursor-target' + (c.code === cur ? ' sel' : '') + '" onclick="selectCurrency(\'' + c.code + '\')">' + c.symbol + '  ' + c.label + '</button>';
+  });
+  popup.querySelector('#currOptions').innerHTML = html;
+  popup.classList.add('show');
+}
+
+function selectCurrency(code){
+  setCurrency(code);
+  var popup = document.getElementById('currPopup');
+  if(popup) popup.classList.remove('show');
+  var curr = CURRENCIES.find(function(c){ return c.code === code; });
+  if(curr) document.getElementById('ovCurrency').textContent = curr.symbol + ' ' + curr.code;
+}
+
+// Wizard currency buttons
+function renderWizCurrency(){
+  var container = document.getElementById('wizCurrency');
+  if(!container) return;
+  var cur = getCurrency();
+  var html = '';
+  CURRENCIES.forEach(function(c){
+    html += '<button onclick="selectWizCurrency(\'' + c.code + '\')" class="cursor-target ' + (c.code === cur ? 'sel' : '') + '">' + c.symbol + ' ' + c.code + '</button>';
+  });
+  container.innerHTML = html;
+}
+
+function selectWizCurrency(code){
+  setCurrency(code);
+  renderWizCurrency();
+}
 
 var step=1,wd=[true,true,true,true,true,false,false],sched='dual',satWork=false;
 var ot={mode:'rate',multiplier:1.5,customAmount:50,customUnit:'hour'};
@@ -207,7 +396,23 @@ function showStep(s){
   for(var i=1;i<=3;i++)document.getElementById('s'+i).classList.toggle('active',i===s);
 }
 
-function setSal(v){document.getElementById('salary').value=v;}
+function setSal(v){
+  document.getElementById('salary').value = v;
+  updateSalaryBtns();
+}
+
+function updateSalaryBtns(){
+  var inputEl = document.getElementById('salary');
+  if(!inputEl) return;
+  var val = parseInt(inputEl.value) || 0;
+  var btns = document.querySelectorAll('#salaryPresets button');
+  for(var i = 0; i < btns.length; i++){
+    var b = btns[i];
+    var preset = parseInt(b.textContent);
+    if(isNaN(preset)) continue;
+    b.className = (preset * 1000 === val) ? 'sel' : '';
+  }
+}
 function tog(d){wd[d]=!wd[d];updateDayBtns();updateWD();}
 function updateDayBtns(){
   var btns=document.getElementById('dayToggles').children;
@@ -280,7 +485,8 @@ function finish(){
     monthlySalary:sal,workingDays:days,workStart:s,workEnd:e,
     dailySalary:sal/days,workHours:hrs,perSecondRate:(sal/days)/hrs/3600,
     workDaysOfWeek:wd,scheduleType:sched,satWorkThisWeek:satWork,
-    overtimeSettings:ot
+    overtimeSettings:ot,
+    currency:getCurrency()
   };
   localStorage.setItem(uk('settings'),JSON.stringify(settings));
   location.href='clock.html';
@@ -288,8 +494,86 @@ function finish(){
 
 document.getElementById('startTime').addEventListener('change',updatePrev);
 document.getElementById('endTime').addEventListener('change',updatePrev);
-document.getElementById('salary').addEventListener('input',updatePrev);
-updDots(1);
+
+// ── Settings overview for returning users ──
+var existing = ld('settings', null);
+
+function showOverview(){
+  var S = existing;
+  if(!S) return;
+  document.getElementById('subtitle').textContent = 'your current settings';
+  document.getElementById('ovSalary').textContent = formatMoney(S.monthlySalary, 0);
+  document.getElementById('ovDays').textContent = S.workDaysOfWeek.filter(Boolean).length + ' days/week · ' + S.workingDays + ' days/month';
+  var schedLabels = { dual:'5-day (dual rest)', alternating:'5.5-day (alternating)', single:'6-day (single rest)' };
+  document.getElementById('ovSched').textContent = schedLabels[S.scheduleType] || 'custom';
+  document.getElementById('ovHours').textContent = S.workStart + ' → ' + S.workEnd;
+  document.getElementById('ovDur').textContent = S.workHours + ' hours/day';
+  var o = S.overtimeSettings;
+  var otLabel = o.mode==='rate' ? o.multiplier+'x multiplier' : (o.mode==='persecond' ? 'base rate' : getCurrencySymbol()+o.customAmount+'/'+o.customUnit);
+  document.getElementById('ovOT').textContent = otLabel;
+  document.getElementById('ovRate').textContent = formatMoney(S.perSecondRate, 4) + '/sec';
+  var curLang = getLang();
+  var langLabel = (LANGUAGES.find(function(l){return l.code===curLang}) || LANGUAGES[0]).label;
+  document.getElementById('ovLang').textContent = langLabel;
+  var curCurr = getCurrency();
+  var currLabel = (CURRENCIES.find(function(c){return c.code===curCurr}) || CURRENCIES[0]);
+  document.getElementById('ovCurrency').textContent = currLabel.symbol + ' ' + currLabel.code;
+  document.getElementById('overview').classList.add('active');
+  document.getElementById('wizard').style.display = 'none';
+}
+
+function editSettings(){
+  document.getElementById('overview').classList.remove('active');
+  document.getElementById('wizard').style.display = 'block';
+  document.getElementById('subtitle').textContent = 'configure your wage clock';
+  // Pre-fill wizard from saved settings
+  if(existing){
+    var S = existing;
+    document.getElementById('salary').value = S.monthlySalary;
+    wd = S.workDaysOfWeek.slice();
+    sched = S.scheduleType;
+    satWork = S.satWorkThisWeek || false;
+    document.getElementById('startTime').value = S.workStart;
+    document.getElementById('endTime').value = S.workEnd;
+    if(S.overtimeSettings){
+      ot = S.overtimeSettings;
+      setOTMode(ot.mode);
+      if(ot.mode==='rate') setOTMult(ot.multiplier);
+      if(ot.mode==='custom'){
+        document.getElementById('otAmt').value = ot.customAmount;
+        ot.customUnit = ot.customUnit || 'hour';
+        document.getElementById('otUnitBtn').textContent = ot.customUnit==='hour'?'hr':(ot.customUnit==='second'?'sec':'once');
+      }
+    }
+    // Update schedule UI
+    updateDayBtns();
+    updateWD();
+    document.getElementById('scDual').className = sched==='dual'?'sel':'';
+    document.getElementById('scAlt').className = sched==='alternating'?'sel':'';
+    document.getElementById('scSingle').className = sched==='single'?'sel':'';
+    document.getElementById('altExtra').style.display = sched==='alternating'?'block':'none';
+    if(sched==='alternating'){
+      document.getElementById('satWork').className = satWork?'sel':'';
+      document.getElementById('satRest').className = satWork?'':'sel';
+    }
+    updatePrev();
+    updateSalaryBtns();
+    // Pre-select currency
+    if(S.currency) setCurrency(S.currency);
+  }
+  renderWizCurrency();
+  showStep(1);
+}
+
+// Init — overview or wizard
+if(existing){
+  showOverview();
+} else {
+  document.getElementById('wizard').style.display = 'block';
+  renderWizCurrency();
+  updateSalaryBtns();
+  updDots(1);
+}
 
 // DotGrid
 (function(){
@@ -341,6 +625,11 @@ card.addEventListener('mousemove',function(e){
 card.addEventListener('mouseleave',function(){
   card.style.transform='rotateY(0deg) rotateX(0deg)';
 });
+
+// Init PillNav
+initPillNav({ active: 'settings' });
+initTargetCursor();
+
 </script>
 </body>
 </html>

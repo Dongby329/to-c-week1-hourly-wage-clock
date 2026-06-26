@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>时薪桌面钟</title>
+<meta name="theme-color" content="#08080c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⏱</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<link rel="stylesheet" href="target-cursor.css">
 <style>
 * { margin:0;padding:0;box-sizing:border-box; }
 canvas { position:fixed;inset:0;z-index:0;pointer-events:none;display:block; }
@@ -14,113 +19,130 @@ body {
   -webkit-font-smoothing:antialiased;overflow:hidden;
 }
 main {
-  position:relative;z-index:1;width:360px;padding:2rem 1.5rem;text-align:center;
+  position:relative;z-index:1;text-align:center;
+  width:clamp(320px,82vw,620px);padding:2rem 1rem;
 }
-
-/* Top bar */
-.top { display:flex;justify-content:space-between;align-items:center;margin-bottom:24px; }
-.top span { font-size:12px;color:#6b6b75;letter-spacing:1px; }
-.top .btns { display:flex;gap:4px; }
-.top .btns button {
-  width:30px;height:30px;border-radius:4px;border:1px solid rgba(255,255,255,0.06);
-  background:transparent;color:#6b6b75;cursor:pointer;font-size:13px;transition:0.2s;
-}
-.top .btns button:hover { border-color:rgba(255,255,255,0.2);color:#a1a1aa; }
 
 /* Status pill */
 .pill {
-  display:inline-flex;align-items:center;gap:5px;padding:3px 12px;border-radius:20px;
-  font-size:10px;font-weight:600;letter-spacing:0.5px;margin-bottom:18px;
+  display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;
+  font-size:9px;font-weight:600;letter-spacing:0.8px;margin-bottom:20px;text-transform:uppercase;
 }
-.pill .dot { width:5px;height:5px;border-radius:50%; }
+.pill .dot { width:4px;height:4px;border-radius:50%; }
 .pill.before { background:rgba(113,113,122,0.08);color:#a1a1aa; } .pill.before .dot { background:#a1a1aa; }
 .pill.working { background:rgba(52,211,153,0.08);color:#34d399; } .pill.working .dot { background:#34d399;animation:breathe 1.5s infinite; }
 .pill.after { background:rgba(251,191,36,0.08);color:#fbbf24; } .pill.after .dot { background:#fbbf24; }
 .pill.overtime { background:rgba(248,113,113,0.12);color:#f87171; } .pill.overtime .dot { background:#f87171;animation:breathe 0.8s infinite; }
 .pill.rest { background:rgba(113,113,122,0.08);color:#a1a1aa; } .pill.rest .dot { background:#a1a1aa; }
+.pill.paused { background:rgba(96,165,250,0.08);color:#60a5fa; } .pill.paused .dot { background:#60a5fa; }
 @keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(1.8)} }
 
 /* Message */
-.msg { min-height:32px;margin-bottom:6px; }
-.msg .l1 { font-size:11px;color:#6b6b75; }
-.msg .l2 { font-size:16px;font-family:'Courier New',monospace;color:#a1a1aa;letter-spacing:1px; }
+.msg { min-height:28px;margin-bottom:8px; }
+.msg .l1 { font-size:12px;color:#6b6b75;letter-spacing:0.5px; }
+.msg .l2 { font-size:18px;font-family:'Courier New',monospace;color:#a1a1aa;letter-spacing:2px; }
+
+/* Breakdown */
+.bd { display:none;font-size:10px;color:#5c5c66;margin-bottom:6px;letter-spacing:0.5px; }
+.overtime .bd { display:block; }
+.bd span { margin:0 6px;font-family:'Courier New',monospace;color:#a1a1aa; }
 
 /* Amount */
-.amt { margin-bottom:4px; }
-.amt .sym { font-size:20px;font-weight:300;color:#6b6b75;vertical-align:top;margin-right:2px;margin-top:8px;display:inline-block;transition:color 0.5s; }
+.amt { margin-bottom:16px; }
+.amt .num-row { display:flex;align-items:baseline;justify-content:center;gap:4px; }
+.amt .sym {
+  font-size:clamp(22px,3.5vw,36px);font-weight:300;color:#6b6b75;
+  transition:color 0.5s;align-self:flex-start;margin-top:clamp(8px,1.5vw,16px);
+}
 .amt .num {
-  font-size:60px;font-weight:700;letter-spacing:-3px;line-height:1;
-  font-family:'Courier New',monospace;transition:color 0.5s;
+  font-size:clamp(72px,13vw,136px);font-weight:700;letter-spacing:-4px;line-height:0.9;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Mono","Courier New",monospace;
+  transition:color 0.5s;font-variant-numeric:tabular-nums;
 }
 .working .sym,.working .num { color:#f59e0b; }
 .after .sym,.after .num { color:#f59e0b; }
 .overtime .sym,.overtime .num { color:#f59e0b; }
 .rest .sym,.rest .num { color:#6b6b75; }
-.amt .lbl { font-size:11px;color:#6b6b75;margin-top:2px;transition:color 0.5s; }
-.working .amt .lbl { color:#b45309; }
-.after .amt .lbl { color:#b45309; }
-.overtime .amt .lbl { color:#b45309; }
+.paused .sym,.paused .num { color:#60a5fa; }
 
-/* Breakdown */
-.bd { display:none;font-size:10px;color:#6b6b75;margin-bottom:2px; }
-.overtime .bd { display:block; }
-.bd span { margin:0 6px; }
-
-/* OT actions */
-.ot { display:none;margin-bottom:12px; }
-.after .ot,.overtime .ot { display:block; }
-.ot .rate { font-size:9px;color:#b45309;margin-bottom:4px; }
-.ot .btns { display:flex;gap:6px;justify-content:center; }
-.ot .btns button {
-  padding:7px 22px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;
-  font-family:inherit;transition:0.2s;border:1px solid;
+.amt .lbl {
+  font-size:11px;color:#6b6b75;margin-top:8px;transition:color 0.5s;
+  letter-spacing:1px;text-transform:uppercase;
 }
-.ot .start { background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);color:#f59e0b; }
-.ot .start:hover { background:rgba(245,158,11,0.16); }
-.ot .stop { background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);color:#f59e0b; }
-.ot .stop:hover { background:rgba(245,158,11,0.16); }
+.working .amt .lbl { color:#92400e; }
+.after .amt .lbl { color:#92400e; }
+.overtime .amt .lbl { color:#b91c1c; }
+.paused .amt .lbl { color:#3b82f6; }
+
+/* Actions row */
+.actions { display:none;margin-top:48px; }
+.working .actions,.paused .actions,.after .actions,.overtime .actions { display:block; }
+.actions .btns { display:flex;gap:8px;justify-content:center;flex-wrap:wrap; }
+.actions .btns button {
+  padding:6px 18px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;
+  font-family:inherit;transition:0.2s;border:1px solid;letter-spacing:0.5px;
+  background:transparent;
+}
+/* Pause — large bottom button */
+.actions .pause,.actions .resume {
+  padding:14px 56px;font-size:20px;letter-spacing:1.5px;border-radius:28px;min-width:180px;
+}
+.actions .pause { border-color:rgba(96,165,250,0.25);color:#60a5fa; }
+.actions .pause:hover { background:rgba(96,165,250,0.12);border-color:rgba(96,165,250,0.5); }
+.actions .resume { border-color:rgba(52,211,153,0.25);color:#34d399; }
+.actions .resume:hover { background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.5); }
+/* OT */
+.actions .ot-start { border-color:rgba(245,158,11,0.2);color:#f59e0b; }
+.actions .ot-start:hover { background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.4); }
+.actions .ot-stop { border-color:rgba(239,68,68,0.2);color:#f87171; }
+.actions .ot-stop:hover { background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.4); }
+
+/* OT rate label */
+.ot-rate { display:none;font-size:9px;color:#b45309;margin-bottom:6px;letter-spacing:0.5px; }
+.after .ot-rate,.overtime .ot-rate { display:block; }
 </style>
 </head>
 <body class="before">
 <canvas id="bg"></canvas>
 <main id="clock">
-  <div class="top">
-    <span>WAGE CLOCK</span>
-    <div class="btns">
-      <button onclick="go('calendar.html')" title="calendar">&#128197;</button>
-      <button onclick="go('setup.html')" title="settings">&#9881;</button>
-      <button onclick="logout()" title="switch">&#8644;</button>
-    </div>
-  </div>
-
   <div class="pill before" id="pill"><span class="dot"></span><span id="st">waiting</span></div>
 
   <div class="msg"><div class="l1" id="ml1"></div><div class="l2" id="ml2"></div></div>
 
+  <div class="bd" id="bd">base <span id="bdBase">0</span> + ot <span id="bdOT">0</span></div>
+
   <div class="amt">
-    <div class="bd" id="bd">base <span id="bdBase">0</span> + ot <span id="bdOT">0</span></div>
-    <div><span class="sym">¥</span><span class="num" id="amount">0.00</span></div>
+    <div class="num-row">
+      <span class="sym">¥</span><span class="num" id="amount">0.00</span>
+    </div>
     <div class="lbl" id="lbl">today</div>
   </div>
 
-  <div class="ot" id="otActs">
-    <div class="rate" id="otLabel"></div>
+  <div class="ot-rate" id="otLabel"></div>
+
+  <div class="actions" id="actions">
     <div class="btns">
-      <button class="start" id="otStart" onclick="startOT()">start overtime</button>
-      <button class="stop" id="otStop" onclick="stopOT()" style="display:none">stop overtime</button>
+      <button class="pause cursor-target" id="pauseBtn" onclick="pauseWork()">⏸ pause</button>
+      <button class="resume cursor-target" id="resumeBtn" onclick="resumeWork()" style="display:none">▶ resume</button>
+      <button class="ot-start cursor-target" id="otStart" onclick="startOT()">start overtime</button>
+      <button class="ot-stop cursor-target" id="otStop" onclick="stopOT()" style="display:none">stop overtime</button>
     </div>
   </div>
 </main>
 
+<script src="nav.js"></script>
+<script src="currency.js"></script>
+<script src="i18n.js"></script>
+<script src="target-cursor.js"></script>
 <script>
 // Auth
 var CU=sessionStorage.getItem('wageClock_currentUser');
-if(!CU) location.href='login.html';
+if(!CU) location.href='hero.html';
 function uk(k){return'wageClock_'+CU+'_'+k;}
 function ld(k,d){try{var v=localStorage.getItem(uk(k));return v?JSON.parse(v):d;}catch(e){return d;}}
 function sd(k,v){localStorage.setItem(uk(k),JSON.stringify(v));}
 function go(u){location.href=u;}
-function logout(){sessionStorage.removeItem('wageClock_currentUser');location.href='login.html';}
+function logout(){sessionStorage.removeItem('wageClock_currentUser');localStorage.removeItem('wageClock_rememberedUser');location.href='login.html';}
 
 // Settings
 var S=ld('settings',{
@@ -138,6 +160,45 @@ var MW=['2026-02-14','2026-04-26','2026-05-09','2026-09-20','2026-09-27','2026-1
 
 // State
 var state='before',raf=null,acc=0,base=0,otAmt=0,cd=0,otStartT=null;
+function _(s){ return typeof t==='function' ? t(s) : s; }
+
+// ── Notifications ──────────────────────────────────────
+var notifPerm = 'default';
+var notifTimers = [];
+
+function reqNotifPerm(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'granted'){ notifPerm = 'granted'; return; }
+  if(Notification.permission === 'denied'){ notifPerm = 'denied'; return; }
+  Notification.requestPermission().then(function(p){ notifPerm = p; });
+}
+
+function clearNotifTimers(){
+  notifTimers.forEach(function(t){ clearTimeout(t); });
+  notifTimers = [];
+}
+
+function scheduleNotif(time, title, body){
+  if(notifPerm !== 'granted') return;
+  var now = new Date();
+  var target = new Date(now);
+  target.setHours(time[0], time[1], 0, 0);
+  var ms = target - now;
+  if(ms <= 0) return;
+  var timer = setTimeout(function(){
+    new Notification(title, { body: body, tag: 'wageclock' });
+  }, ms);
+  notifTimers.push(timer);
+}
+
+function scheduleDayNotifs(){
+  if(!S || !S.workStart || !S.workEnd) return;
+  clearNotifTimers();
+  var s = S.workStart.split(':').map(Number);
+  var e = S.workEnd.split(':').map(Number);
+  scheduleNotif(s, _('earning · live'), _('work starts now'));
+  scheduleNotif(e, _('today · done'), _('work day complete'));
+}
 
 function gWS(){var p=S.workStart.split(':').map(Number);var d=new Date();d.setHours(p[0],p[1],0,0);return d;}
 function gWE(){var p=S.workEnd.split(':').map(Number);var d=new Date();d.setHours(p[0],p[1],0,0);return d;}
@@ -169,32 +230,41 @@ function setState(s){
   var c=document.getElementById('clock');c.className=s;
   if(s==='rest')showRest();else if(s==='before')showBefore();
   else if(s==='working')showWorking();else if(s==='after')showAfter();
-  else if(s==='overtime')startOT();
+  else if(s==='paused')showPaused();else if(s==='overtime')startOT();
 }
 
 function updatePill(s){
   var p=document.getElementById('pill');p.className='pill '+s;
 }
 function showRest(){
-  updatePill('rest');document.getElementById('st').textContent='day off';
-  document.getElementById('ml1').textContent='rest day';document.getElementById('ml2').textContent='';
-  document.getElementById('amount').textContent='0.00';document.getElementById('lbl').textContent='paused';
-  document.getElementById('otActs').style.display='none';
+  updatePill('rest');document.getElementById('st').textContent=_('day off');
+  document.getElementById('ml1').textContent=_('rest day');document.getElementById('ml2').textContent='';
+  document.getElementById('amount').textContent='0.00';document.getElementById('lbl').textContent=_('paused');
+  document.getElementById('otStart').style.display='none';
+  document.getElementById('otStop').style.display='none';
   document.getElementById('bd').style.display='none';
 }
 function showBefore(){
-  updatePill('before');document.getElementById('st').textContent='waiting';
-  document.getElementById('ml1').textContent='work starts in';document.getElementById('otActs').style.display='none';
+  updatePill('before');document.getElementById('st').textContent=_('waiting');
+  document.getElementById('ml1').textContent=_('work starts in');
+  document.getElementById('otStart').style.display='none';
+  document.getElementById('otStop').style.display='none';
+  document.getElementById('pauseBtn').style.display='none';
+  document.getElementById('resumeBtn').style.display='none';
   document.getElementById('bd').style.display='none';acc=0;base=0;otAmt=0;
   var now=new Date(),start=gWS();if(now>=start)start.setDate(start.getDate()+1);
   cd=Math.floor((start-now)/1000);if(cd<0)cd=5535;
   updateCD();animCD();
-  document.getElementById('amount').textContent='0.00';document.getElementById('lbl').textContent='today';
+  document.getElementById('amount').textContent='0.00';document.getElementById('lbl').textContent=_('today');
   
 }
 function showWorking(){
-  updatePill('working');document.getElementById('st').textContent='earning';
-  document.getElementById('otActs').style.display='none';document.getElementById('bd').style.display='none';
+  updatePill('working');document.getElementById('st').textContent=_('earning');
+  document.getElementById('otStart').style.display='none';
+  document.getElementById('otStop').style.display='none';
+  document.getElementById('bd').style.display='none';
+  document.getElementById('pauseBtn').style.display='inline-block';
+  document.getElementById('resumeBtn').style.display='none';
   var now=new Date(),start=gWS(),end=gWE();
   var elapsed=Math.max(0,(now-start)/1000),total=gWSecs();
   base=Math.min(elapsed,Math.max(0,total))*S.perSecondRate;otAmt=0;acc=base;
@@ -202,32 +272,60 @@ function showWorking(){
   document.getElementById('ml1').textContent=eh+'h '+em+'m worked today';document.getElementById('ml2').textContent='';
   setTimeout(function(){document.getElementById('ml1').textContent='';},4000);
   updateDisp();animWork();
-  document.getElementById('lbl').textContent='earning · live';
+  document.getElementById('lbl').textContent=_('earning · live');
+}
+function showPaused(){
+  updatePill('paused');document.getElementById('st').textContent=_('paused');
+  document.getElementById('ml1').textContent=_('work paused');document.getElementById('ml2').textContent='';
+  document.getElementById('otStart').style.display='none';
+  document.getElementById('otStop').style.display='none';
+  document.getElementById('bd').style.display='none';
+  document.getElementById('pauseBtn').style.display='none';
+  document.getElementById('resumeBtn').style.display='inline-block';
+  updateDisp();document.getElementById('lbl').textContent=_('today · paused');
+}
+function pauseWork(){
+  if(state!=='working')return;
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  setState('paused');
+}
+function resumeWork(){
+  if(state!=='paused')return;
+  state='working';
+  document.getElementById('clock').className='working';
+  updatePill('working');document.getElementById('st').textContent=_('earning');
+  document.getElementById('pauseBtn').style.display='inline-block';
+  document.getElementById('resumeBtn').style.display='none';
+  document.getElementById('otStart').style.display='none';
+  document.getElementById('otStop').style.display='none';
+  document.getElementById('lbl').textContent=_('earning · live');
+  document.getElementById('ml1').textContent='';
+  animWork();
 }
 function showAfter(){
-  updatePill('after');document.getElementById('st').textContent='done';
+  updatePill('after');document.getElementById('st').textContent=_('done');
   document.getElementById('ml1').textContent='';document.getElementById('ml2').textContent='';
   document.getElementById('bd').style.display='none';
+  document.getElementById('pauseBtn').style.display='none';
+  document.getElementById('resumeBtn').style.display='none';
   base=S.dailySalary;otAmt=0;acc=base;
   document.getElementById('amount').textContent=acc.toFixed(2);
-  document.getElementById('lbl').textContent='today · completed';
-  
-  document.getElementById('otActs').style.display='block';
+  document.getElementById('lbl').textContent=_('today · completed');
   document.getElementById('otStart').style.display='inline-block';
   document.getElementById('otStop').style.display='none';
   document.getElementById('otLabel').textContent='OT: '+otLabel();
   sd('earnings_'+new Date().toISOString().slice(0,10),base);
 }
 function startOT(){
-  updatePill('overtime');document.getElementById('st').textContent='overtime';
+  updatePill('overtime');document.getElementById('st').textContent=_('overtime');
   document.getElementById('ml1').textContent='';document.getElementById('ml2').textContent='';
+  document.getElementById('pauseBtn').style.display='none';
+  document.getElementById('resumeBtn').style.display='none';
   if(base<S.dailySalary)base=S.dailySalary;
   if(!otStartT)otStartT=new Date();
   acc=base+otAmt;updateDisp();updateBD();
   document.getElementById('bd').style.display='block';
-  document.getElementById('lbl').textContent='base + ot · live';
-  
-  document.getElementById('otActs').style.display='block';
+  document.getElementById('lbl').textContent=_('base + ot · live');
   document.getElementById('otStart').style.display='none';
   document.getElementById('otStop').style.display='inline-block';
   document.getElementById('otLabel').textContent='OT: '+otLabel();
@@ -238,11 +336,10 @@ function stopOT(){
   if(otStartT){otAmt+=(new Date()-otStartT)/1000*otRate();}
   otStartT=null;acc=base+otAmt;
   document.getElementById('amount').textContent=acc.toFixed(2);
-  document.getElementById('lbl').textContent='total · completed';
+  document.getElementById('lbl').textContent=_('total · completed');
   updateBD();document.getElementById('bd').style.display='block';
-  
   document.getElementById('otStart').style.display='inline-block';
-  document.getElementById('otStart').textContent='resume overtime';
+  document.getElementById('otStart').textContent=_('resume overtime');
   document.getElementById('otStop').style.display='none';
   if(raf){cancelAnimationFrame(raf);raf=null;}
   sd('earnings_'+new Date().toISOString().slice(0,10),acc);
@@ -282,16 +379,17 @@ function animOT(){
 }
 function updateDisp(){document.getElementById('amount').textContent=acc.toFixed(2);}
 function updateBD(){
-  document.getElementById('bdBase').textContent='¥'+base.toFixed(2);
-  document.getElementById('bdOT').textContent='¥'+otAmt.toFixed(2);
+  document.getElementById('bdBase').textContent=formatMoney(base,2);
+  document.getElementById('bdOT').textContent=formatMoney(otAmt,2);
 }
 
 // Init
 (function(){
+  reqNotifPerm();
   var r=isRest();
   if(r){setState('rest');return;}
   var now=new Date(),start=gWS(),end=gWE();
-  if(now<start)setState('before');
+  if(now<start){setState('before');scheduleDayNotifs();}
   else if(now>end)setState('after');
   else setState('working');
 })();
@@ -334,6 +432,11 @@ function updateBD(){
   setTimeout(function(){build();requestAnimationFrame(tick);},100);
   window.addEventListener('resize',build);window.addEventListener('mousemove',mv,{passive:true});window.addEventListener('click',cl);
 })();
+
+// Init PillNav
+initPillNav({ active: 'clock' });
+initTargetCursor();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
 
 </script>
 </body>

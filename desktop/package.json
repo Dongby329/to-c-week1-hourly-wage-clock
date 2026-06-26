@@ -1,0 +1,52 @@
+{
+  "name": "hourly-wage-clock",
+  "version": "1.0.0",
+  "description": "时薪桌面钟 — 让你的每一秒都看得见",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.wageclock.desktop",
+    "productName": "时薪桌面钟",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../prototype",
+        "to": "prototype"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "时薪桌面钟-Setup-${version}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "时薪桌面钟"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^25.0.0"
+  }
+}

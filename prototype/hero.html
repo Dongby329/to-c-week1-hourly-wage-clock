@@ -19,22 +19,22 @@ main {
   width:90vw; max-width:900px;
 }
 h1 {
-  font-family: 'Courier New', monospace;
-  font-size: clamp(32px, 6vw, 64px); font-weight: 400; color: #fff;
+  font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
+  font-size: clamp(32px, 6vw, 64px); font-weight: 900; color: #fff;
   letter-spacing: 4px; margin-bottom: 16px;
 }
 h2 {
-  font-family: 'Courier New', monospace;
-  font-size: clamp(18px, 3vw, 32px); font-weight: 400;
+  font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
+  font-size: clamp(18px, 3vw, 32px); font-weight: 900;
   color: rgba(255,255,255,0.4); letter-spacing: 6px; margin-bottom: 56px;
 }
 .btn {
   display: inline-block; padding: 12px 44px; border-radius: 4px;
   font-size: 13px; font-weight: 500; text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.2); color: #d4d4d8;
+  background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3);
   letter-spacing: 1px; text-transform: uppercase; transition: 0.25s;
 }
-.btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.4); color: #fff; }
+.btn:hover { background: #fff; color: #000; border-color: #fff; }
 .welcome { margin-top: 16px; font-size: 12px; color: #6b6b75; display: none; }
 .welcome strong { color: #fff; font-family: 'Courier New', monospace; }
 .switch { margin-top: 8px; background: none; border: 1px solid rgba(255,255,255,0.08); color: #6b6b75; padding: 4px 14px; border-radius: 4px; cursor: pointer; font-size: 10px; }
@@ -46,12 +46,12 @@ h2 {
 <canvas id="bg"></canvas>
 <main>
   <h1 id="t1"></h1>
-  <h2>fellow worker</h2>
+  <h2 id="t2">fellow worker</h2>
   <a href="login.html" class="btn" id="btn">Enter</a>
   <div class="welcome" id="w">
     <div>welcome back</div>
     <div><strong id="wu"></strong></div>
-    <button class="switch" onclick="sessionStorage.removeItem('wageClock_currentUser');location.href='login.html'">switch account</button>
+    <button class="switch" onclick="sessionStorage.removeItem('wageClock_currentUser');localStorage.removeItem('wageClock_rememberedUser');location.href='login.html'">switch account</button>
   </div>
 </main>
 <script>
@@ -59,6 +59,7 @@ var h = new Date().getHours();
 var g = h>=5&&h<12?'Good morning':(h>=12&&h<18?'Good afternoon':'Good evening');
 // Title — static first, then GSAP shuffle
 var t1=document.getElementById('t1'), t1text=g;
+var t2=document.getElementById('t2');
 t1.textContent = t1text;
 
 function gsapShuffle(el, text, cw, ch){
@@ -67,10 +68,10 @@ function gsapShuffle(el, text, cw, ch){
   var set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?<>{}[]#@';
   var strips = [];
 
-  chars.forEach(function(ch, i){
+  chars.forEach(function(chr, i){
     var wrap = document.createElement('span');
     wrap.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:bottom';
-    var w = ch===' '?cw*0.5:cw;
+    var w = chr===' '?cw*0.5:cw;
     wrap.style.width = w+'px'; wrap.style.height = ch+'px';
 
     var inner = document.createElement('span');
@@ -83,7 +84,7 @@ function gsapShuffle(el, text, cw, ch){
       inner.appendChild(sp);
     }
     var fn = document.createElement('span');
-    fn.textContent = ch;
+    fn.textContent = chr;
     fn.style.cssText = 'display:block;text-align:center;height:'+ch+'px;line-height:'+ch+'px;font:inherit;color:inherit';
     inner.appendChild(fn);
 
@@ -102,11 +103,19 @@ function gsapShuffle(el, text, cw, ch){
 }
 
 setTimeout(function(){
-  gsapShuffle(t1, t1text, 42, 72);
-  setTimeout(function(){ gsapShuffle(t2, 'fellow worker', 24, 40); }, 500);
+  gsapShuffle(t1, t1text, 56, 80);
+  setTimeout(function(){ gsapShuffle(t2, 'fellow worker', 28, 44); }, 500);
 }, 500);
 
 var u = sessionStorage.getItem('wageClock_currentUser');
+// Auto-restore from localStorage if session was lost (browser closed)
+if(!u){
+  var remembered = localStorage.getItem('wageClock_rememberedUser');
+  if(remembered){ try{
+    var users = JSON.parse(localStorage.getItem('wageClock_users')||'{}');
+    if(users[remembered]){ sessionStorage.setItem('wageClock_currentUser', remembered); u = remembered; }
+  }catch(e){} }
+}
 if(u){ try{
   var users = JSON.parse(localStorage.getItem('wageClock_users')||'{}');
   if(users[u]){ document.getElementById('w').style.display='block'; document.getElementById('wu').textContent=u; document.getElementById('btn').href='clock.html'; }
